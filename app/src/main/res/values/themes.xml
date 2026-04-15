@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.Echoes" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/echoes_accent</item>
+        <item name="colorSecondary">@color/echoes_ink</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/echoes_canvas</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+    </style>
+
+</resources>
