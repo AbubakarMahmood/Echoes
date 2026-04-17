@@ -7,5 +7,14 @@
     <fragment
         android:id="@+id/welcomeFragment"
         android:name="com.echoes.app.ui.welcome.WelcomeFragment"
-        android:label="@string/app_name" />
+        android:label="@string/app_name">
+        <action
+            android:id="@+id/action_welcomeFragment_to_createTextCapsuleFragment"
+            app:destination="@id/createTextCapsuleFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createTextCapsuleFragment"
+        android:name="com.echoes.app.ui.capsule.create.CreateTextCapsuleFragment"
+        android:label="@string/create_capsule_screen_label" />
 </navigation>

@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 1 checkpoint</string>
-    <string name="welcome_title">Echoes is now a real Android app project.</string>
-    <string name="welcome_subtitle">Navigation, Material theming, and the first screen are in place so we can build the rest of the coursework on something stable.</string>
-    <string name="day_one_heading">What exists right now</string>
-    <string name="day_one_body">A Kotlin Android skeleton with min SDK 26, a nav host, a placeholder welcome screen, and the package layout for the features we will add next.</string>
-    <string name="day_one_button">Next up: Room and the local data model</string>
+    <string name="welcome_kicker">Day 3 checkpoint</string>
+    <string name="welcome_title">Create your first text capsule.</string>
+    <string name="welcome_subtitle">The app can now move beyond a placeholder screen and save a text capsule into the local Room database.</string>
+    <string name="day_one_heading">What works today</string>
+    <string name="day_one_body">You can open a capsule form, enter a title and story, pass validation, and save the result locally as the first real slice of Echoes.</string>
+    <string name="create_text_capsule_button">Create text capsule</string>
+    <string name="create_capsule_screen_label">Create Capsule</string>
+    <string name="create_capsule_kicker">Text capsule</string>
+    <string name="create_capsule_title">Write the story you want to seal.</string>
+    <string name="create_capsule_subtitle">This version is local-first and text-only on purpose. Image support comes next, but the core creation flow needs to be solid first.</string>
+    <string name="title_input_label">Capsule title</string>
+    <string name="story_input_label">Story text</string>
+    <string name="create_capsule_hint">Basic validation is enabled now: title must be at least 3 characters and story text at least 10 characters.</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="save_capsule_button">Save locally</string>
+    <string name="saving_capsule_button">Saving...</string>
+    <string name="error_title_too_short">Title must be at least 3 characters.</string>
+    <string name="error_story_too_short">Story text must be at least 10 characters.</string>
+    <string name="capsule_saved_message">Text capsule saved to Room.</string>
+    <string name="capsule_save_failed_message">Could not save the capsule. Try again.</string>
 </resources>
