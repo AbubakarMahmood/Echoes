@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.navigation:navigation-fragment-ktx:2.8.6")
     implementation("androidx.navigation:navigation-ui-ktx:2.8.6")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.room:room-runtime:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
     ksp("androidx.room:room-compiler:2.7.0")

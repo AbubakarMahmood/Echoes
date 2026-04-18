@@ -23,5 +23,9 @@ class WelcomeFragment : Fragment() {
         view.findViewById<MaterialButton>(R.id.createTextCapsuleButton).setOnClickListener {
             findNavController().navigate(R.id.action_welcomeFragment_to_createTextCapsuleFragment)
         }
+
+        view.findViewById<MaterialButton>(R.id.viewArchiveButton).setOnClickListener {
+            findNavController().navigate(R.id.action_welcomeFragment_to_archiveFragment)
+        }
     }
 }
