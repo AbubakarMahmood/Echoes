@@ -114,8 +114,7 @@ class CreateTextCapsuleFragment : Fragment() {
                 }
             }.onSuccess {
                 setSavingState(false)
-                Snackbar.make(requireView(), R.string.capsule_saved_message, Snackbar.LENGTH_LONG).show()
-                findNavController().navigateUp()
+                findNavController().navigate(R.id.archiveFragment)
             }.onFailure {
                 setSavingState(false)
                 Snackbar.make(requireView(), R.string.capsule_save_failed_message, Snackbar.LENGTH_LONG).show()
