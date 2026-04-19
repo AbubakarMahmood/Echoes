@@ -31,6 +31,7 @@
     <string name="archive_empty_button">Create first capsule</string>
     <string name="archive_load_failed_message">Could not load the local archive.</string>
     <string name="archive_item_created_at">Created %1$s</string>
+    <string name="archive_item_updated_at">Updated %1$s</string>
     <string name="capsule_status_locked">Locked</string>
     <string name="capsule_status_unlocked">Unlocked</string>
     <string name="detail_screen_label">Capsule Detail</string>
