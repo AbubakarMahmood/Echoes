@@ -12,9 +12,9 @@ import androidx.navigation.fragment.findNavController
 import com.echoes.app.R
 import com.echoes.app.data.local.DatabaseProvider
 import com.echoes.app.data.local.entity.CapsuleEntity
-import com.echoes.app.data.local.model.CapsuleWithUnlockCondition
-import com.echoes.app.data.local.model.UnlockType
+import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.util.DateFormatters
+import com.echoes.app.util.CapsuleMetadataFormatter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
@@ -30,7 +30,10 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var titleInput: TextInputEditText
     private lateinit var statusText: TextView
     private lateinit var createdAtText: TextView
-    private lateinit var unlockSummaryText: TextView
+    private lateinit var metadataOwnerText: TextView
+    private lateinit var metadataUpdatedAtText: TextView
+    private lateinit var metadataUnlockTypeText: TextView
+    private lateinit var metadataLockStatusText: TextView
     private lateinit var bodyLayout: TextInputLayout
     private lateinit var bodyInput: TextInputEditText
     private lateinit var saveButton: MaterialButton
@@ -51,7 +54,10 @@ class CapsuleDetailFragment : Fragment() {
         titleInput = view.findViewById(R.id.detailTitleInput)
         statusText = view.findViewById(R.id.detailStatusText)
         createdAtText = view.findViewById(R.id.detailCreatedAtText)
-        unlockSummaryText = view.findViewById(R.id.detailUnlockSummaryText)
+        metadataOwnerText = view.findViewById(R.id.detailOwnerText)
+        metadataUpdatedAtText = view.findViewById(R.id.detailUpdatedAtText)
+        metadataUnlockTypeText = view.findViewById(R.id.detailUnlockTypeText)
+        metadataLockStatusText = view.findViewById(R.id.detailLockStatusText)
         bodyLayout = view.findViewById(R.id.detailBodyLayout)
         bodyInput = view.findViewById(R.id.detailBodyInput)
         saveButton = view.findViewById(R.id.detailSaveButton)
@@ -85,7 +91,7 @@ class CapsuleDetailFragment : Fragment() {
                 withContext(Dispatchers.IO) {
                     DatabaseProvider.getDatabase(requireContext())
                         .capsuleDao()
-                        .getCapsuleWithUnlockCondition(capsuleId)
+                        .getCapsuleRecord(capsuleId)
                 }
             }.onSuccess { capsuleWithUnlock ->
                 if (capsuleWithUnlock == null) {
@@ -100,25 +106,35 @@ class CapsuleDetailFragment : Fragment() {
         }
     }
 
-    private fun bindCapsule(capsuleWithUnlock: CapsuleWithUnlockCondition) {
-        val capsule = capsuleWithUnlock.capsule
-        val unlockCondition = capsuleWithUnlock.unlockCondition
+    private fun bindCapsule(capsuleRecord: CapsuleRecord) {
+        val capsule = capsuleRecord.capsule
+        val metadata = capsuleRecord.metadata
         currentCapsule = capsule
 
         titleInput.setText(capsule.title)
         statusText.text = getString(
-            if (capsule.isLocked) R.string.capsule_status_locked else R.string.capsule_status_unlocked
+            if (metadata.isLocked) R.string.capsule_status_locked else R.string.capsule_status_unlocked
         )
         createdAtText.text = getString(
             R.string.detail_created_at,
-            DateFormatters.formatTimestamp(capsule.createdAt)
+            DateFormatters.formatTimestamp(metadata.createdAt)
         )
-        unlockSummaryText.text = when (unlockCondition?.conditionType ?: UnlockType.NONE) {
-            UnlockType.NONE -> getString(R.string.detail_unlock_now)
-            UnlockType.DATE -> getString(R.string.detail_unlock_date_pending)
-            UnlockType.LOCATION -> getString(R.string.detail_unlock_location_pending)
-            UnlockType.EVENT -> getString(R.string.detail_unlock_event_pending)
-        }
+        metadataOwnerText.text = getString(
+            R.string.detail_owner_value,
+            CapsuleMetadataFormatter.ownerSummary(requireContext(), metadata)
+        )
+        metadataUpdatedAtText.text = getString(
+            R.string.detail_updated_at,
+            DateFormatters.formatTimestamp(metadata.updatedAt)
+        )
+        metadataUnlockTypeText.text = getString(
+            R.string.detail_unlock_type_value,
+            CapsuleMetadataFormatter.unlockTypeLabel(requireContext(), metadata.unlockType)
+        )
+        metadataLockStatusText.text = getString(
+            R.string.detail_lock_status_value,
+            CapsuleMetadataFormatter.lockStatusLabel(requireContext(), metadata)
+        )
         bodyInput.setText(capsule.storyText)
     }
 

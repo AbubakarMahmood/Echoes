@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -15,6 +16,7 @@ import com.echoes.app.data.local.entity.CapsuleEntity
 import com.echoes.app.data.local.entity.UnlockConditionEntity
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.UnlockType
+import com.echoes.app.util.CapsuleMetadataFormatter
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -31,6 +33,10 @@ class CreateTextCapsuleFragment : Fragment() {
     private lateinit var bodyInput: TextInputEditText
     private lateinit var saveButton: Button
     private lateinit var cancelButton: Button
+    private lateinit var metadataOwnerText: TextView
+    private lateinit var metadataUnlockTypeText: TextView
+    private lateinit var metadataLockStatusText: TextView
+    private lateinit var metadataTimestampText: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +53,12 @@ class CreateTextCapsuleFragment : Fragment() {
         bodyInput = view.findViewById(R.id.bodyInput)
         saveButton = view.findViewById(R.id.saveCapsuleButton)
         cancelButton = view.findViewById(R.id.cancelButton)
+        metadataOwnerText = view.findViewById(R.id.createMetadataOwnerText)
+        metadataUnlockTypeText = view.findViewById(R.id.createMetadataUnlockTypeText)
+        metadataLockStatusText = view.findViewById(R.id.createMetadataLockStatusText)
+        metadataTimestampText = view.findViewById(R.id.createMetadataTimestampText)
+
+        bindMetadataPreview()
 
         saveButton.setOnClickListener {
             saveCapsule()
@@ -55,6 +67,23 @@ class CreateTextCapsuleFragment : Fragment() {
         cancelButton.setOnClickListener {
             findNavController().navigateUp()
         }
+    }
+
+    private fun bindMetadataPreview() {
+        metadataOwnerText.text = getString(
+            R.string.create_metadata_owner_value,
+            SeedData.LOCAL_USER_NAME,
+            SeedData.LOCAL_USER_ID
+        )
+        metadataUnlockTypeText.text = getString(
+            R.string.create_metadata_unlock_value,
+            CapsuleMetadataFormatter.unlockTypeLabel(requireContext(), UnlockType.NONE)
+        )
+        metadataLockStatusText.text = getString(
+            R.string.create_metadata_lock_value,
+            getString(R.string.capsule_status_unlocked)
+        )
+        metadataTimestampText.text = getString(R.string.create_metadata_timestamps_value)
     }
 
     private fun saveCapsule() {
@@ -108,7 +137,8 @@ class CreateTextCapsuleFragment : Fragment() {
             runCatching {
                 withContext(Dispatchers.IO) {
                     val database = DatabaseProvider.getDatabase(requireContext())
-                    database.userDao().upsertUser(SeedData.localUser(now))
+                    val existingUser = database.userDao().getUserById(SeedData.LOCAL_USER_ID)
+                    database.userDao().upsertUser(SeedData.localUserForWrite(existingUser, now))
                     database.capsuleDao().upsertCapsule(capsule)
                     database.unlockConditionDao().upsertUnlockCondition(unlockCondition)
                 }
