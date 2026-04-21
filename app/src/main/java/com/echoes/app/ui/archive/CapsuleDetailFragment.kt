@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -12,7 +13,9 @@ import androidx.navigation.fragment.findNavController
 import com.echoes.app.R
 import com.echoes.app.data.local.DatabaseProvider
 import com.echoes.app.data.local.entity.CapsuleEntity
+import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
+import com.echoes.app.util.CapsuleImageStorage
 import com.echoes.app.util.DateFormatters
 import com.echoes.app.util.CapsuleMetadataFormatter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -32,8 +35,12 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var createdAtText: TextView
     private lateinit var metadataOwnerText: TextView
     private lateinit var metadataUpdatedAtText: TextView
+    private lateinit var metadataMediaTypeText: TextView
     private lateinit var metadataUnlockTypeText: TextView
     private lateinit var metadataLockStatusText: TextView
+    private lateinit var imageCard: View
+    private lateinit var imagePreview: ImageView
+    private lateinit var imagePlaceholderText: TextView
     private lateinit var bodyLayout: TextInputLayout
     private lateinit var bodyInput: TextInputEditText
     private lateinit var saveButton: MaterialButton
@@ -56,8 +63,12 @@ class CapsuleDetailFragment : Fragment() {
         createdAtText = view.findViewById(R.id.detailCreatedAtText)
         metadataOwnerText = view.findViewById(R.id.detailOwnerText)
         metadataUpdatedAtText = view.findViewById(R.id.detailUpdatedAtText)
+        metadataMediaTypeText = view.findViewById(R.id.detailMediaTypeText)
         metadataUnlockTypeText = view.findViewById(R.id.detailUnlockTypeText)
         metadataLockStatusText = view.findViewById(R.id.detailLockStatusText)
+        imageCard = view.findViewById(R.id.detailImageCard)
+        imagePreview = view.findViewById(R.id.detailImagePreview)
+        imagePlaceholderText = view.findViewById(R.id.detailImagePlaceholderText)
         bodyLayout = view.findViewById(R.id.detailBodyLayout)
         bodyInput = view.findViewById(R.id.detailBodyInput)
         saveButton = view.findViewById(R.id.detailSaveButton)
@@ -127,6 +138,10 @@ class CapsuleDetailFragment : Fragment() {
             R.string.detail_updated_at,
             DateFormatters.formatTimestamp(metadata.updatedAt)
         )
+        metadataMediaTypeText.text = getString(
+            R.string.detail_media_type_value,
+            CapsuleMetadataFormatter.mediaTypeLabel(requireContext(), capsule.mediaType)
+        )
         metadataUnlockTypeText.text = getString(
             R.string.detail_unlock_type_value,
             CapsuleMetadataFormatter.unlockTypeLabel(requireContext(), metadata.unlockType)
@@ -135,7 +150,27 @@ class CapsuleDetailFragment : Fragment() {
             R.string.detail_lock_status_value,
             CapsuleMetadataFormatter.lockStatusLabel(requireContext(), metadata)
         )
+        bindImage(capsule)
         bodyInput.setText(capsule.storyText)
+    }
+
+    private fun bindImage(capsule: CapsuleEntity) {
+        val imageUri = CapsuleImageStorage.uriForStoredPath(capsule.mediaLocalPath)
+        val shouldShowImageCard = capsule.mediaType == CapsuleMediaType.IMAGE || imageUri != null
+        val hasUsableImage = imageUri != null
+
+        imageCard.visibility = if (shouldShowImageCard) View.VISIBLE else View.GONE
+
+        if (!shouldShowImageCard) return
+
+        imagePreview.setImageURI(null)
+        if (hasUsableImage) {
+            imagePreview.setImageURI(imageUri)
+        }
+
+        imagePreview.visibility = if (hasUsableImage) View.VISIBLE else View.GONE
+        imagePlaceholderText.visibility = if (hasUsableImage) View.GONE else View.VISIBLE
+        imagePlaceholderText.text = getString(R.string.detail_image_missing)
     }
 
     private fun saveChanges() {
@@ -208,9 +243,11 @@ class CapsuleDetailFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
-                    DatabaseProvider.getDatabase(requireContext())
-                        .capsuleDao()
-                        .deleteCapsule(capsule)
+                    val database = DatabaseProvider.getDatabase(requireContext())
+                    database.capsuleDao().deleteCapsule(capsule)
+                    if (capsule.mediaType == CapsuleMediaType.IMAGE) {
+                        CapsuleImageStorage.deleteStoredImage(capsule.mediaLocalPath)
+                    }
                 }
             }.onSuccess {
                 setActionState(isSaving = false, isDeleting = false)

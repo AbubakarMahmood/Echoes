@@ -56,6 +56,7 @@ class ArchiveCapsuleAdapter(
             metadataText.text = itemView.context.getString(
                 R.string.archive_item_metadata_summary,
                 CapsuleMetadataFormatter.ownerSummary(itemView.context, metadata),
+                CapsuleMetadataFormatter.mediaTypeLabel(itemView.context, capsule.mediaType),
                 CapsuleMetadataFormatter.unlockTypeLabel(itemView.context, metadata.unlockType)
             )
             timestampText.text = itemView.context.getString(
