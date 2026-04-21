@@ -2,6 +2,7 @@ package com.echoes.app.util
 
 import android.content.Context
 import com.echoes.app.R
+import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleMetadata
 import com.echoes.app.data.local.model.UnlockType
 
@@ -26,5 +27,14 @@ object CapsuleMetadataFormatter {
         return context.getString(
             if (metadata.isLocked) R.string.capsule_status_locked else R.string.capsule_status_unlocked
         )
+    }
+
+    fun mediaTypeLabel(context: Context, mediaType: CapsuleMediaType): String {
+        val labelRes = when (mediaType) {
+            CapsuleMediaType.TEXT -> R.string.media_type_text_only
+            CapsuleMediaType.IMAGE -> R.string.media_type_text_plus_image
+            CapsuleMediaType.AUDIO -> R.string.media_type_text_plus_audio
+        }
+        return context.getString(labelRes)
     }
 }
