@@ -6,28 +6,29 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.echoes.app.R
-import com.echoes.app.data.local.DatabaseProvider
 import com.echoes.app.data.local.entity.CapsuleEntity
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.util.CapsuleImageStorage
-import com.echoes.app.util.DateFormatters
 import com.echoes.app.util.CapsuleMetadataFormatter
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.echoes.app.util.DateFormatters
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CapsuleDetailFragment : Fragment() {
+
+    private val viewModel: CapsuleDetailViewModel by viewModels()
 
     private lateinit var titleLayout: TextInputLayout
     private lateinit var titleInput: TextInputEditText
@@ -46,7 +47,7 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var saveButton: MaterialButton
     private lateinit var deleteButton: MaterialButton
     private lateinit var backButton: MaterialButton
-    private var currentCapsule: CapsuleEntity? = null
+    private var lastBoundCapsuleKey: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,6 +58,13 @@ class CapsuleDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        bindViews(view)
+        bindActions()
+        collectViewModel()
+        viewModel.loadCapsule(arguments?.getString(ARG_CAPSULE_ID))
+    }
+
+    private fun bindViews(view: View) {
         titleLayout = view.findViewById(R.id.detailTitleLayout)
         titleInput = view.findViewById(R.id.detailTitleInput)
         statusText = view.findViewById(R.id.detailStatusText)
@@ -74,53 +82,69 @@ class CapsuleDetailFragment : Fragment() {
         saveButton = view.findViewById(R.id.detailSaveButton)
         deleteButton = view.findViewById(R.id.detailDeleteButton)
         backButton = view.findViewById(R.id.detailBackButton)
+    }
 
+    private fun bindActions() {
         backButton.setOnClickListener {
             findNavController().navigateUp()
         }
 
         saveButton.setOnClickListener {
-            saveChanges()
+            viewModel.saveChanges(
+                title = titleInput.text?.toString()?.trim().orEmpty(),
+                body = bodyInput.text?.toString()?.trim().orEmpty()
+            )
         }
 
         deleteButton.setOnClickListener {
             confirmDelete()
         }
-
-        loadCapsule()
     }
 
-    private fun loadCapsule() {
-        val capsuleId = arguments?.getString(ARG_CAPSULE_ID)
-        if (capsuleId.isNullOrBlank()) {
-            findNavController().navigateUp()
-            return
-        }
-
+    private fun collectViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    DatabaseProvider.getDatabase(requireContext())
-                        .capsuleDao()
-                        .getCapsuleRecord(capsuleId)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        renderState(state)
+                    }
                 }
-            }.onSuccess { capsuleWithUnlock ->
-                if (capsuleWithUnlock == null) {
-                    Snackbar.make(requireView(), R.string.capsule_detail_missing_message, Snackbar.LENGTH_LONG).show()
-                    findNavController().navigateUp()
-                } else {
-                    bindCapsule(capsuleWithUnlock)
+
+                launch {
+                    viewModel.events.collect { event ->
+                        handleEvent(event)
+                    }
                 }
-            }.onFailure {
-                Snackbar.make(requireView(), R.string.capsule_detail_load_failed_message, Snackbar.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun renderState(state: CapsuleDetailUiState) {
+        titleLayout.error = state.titleErrorResId?.let(::getString)
+        bodyLayout.error = state.bodyErrorResId?.let(::getString)
+        setActionState(isSaving = state.isSaving, isDeleting = state.isDeleting)
+
+        val record = state.record ?: return
+        val capsule = record.capsule
+        val capsuleKey = "${capsule.capsuleId}:${capsule.updatedAt}:${capsule.mediaType}:${capsule.mediaLocalPath}"
+        if (capsuleKey != lastBoundCapsuleKey) {
+            lastBoundCapsuleKey = capsuleKey
+            bindCapsule(record)
+        }
+    }
+
+    private fun handleEvent(event: CapsuleDetailEvent) {
+        when (event) {
+            is CapsuleDetailEvent.ShowMessage -> {
+                Snackbar.make(requireView(), event.messageResId, Snackbar.LENGTH_LONG).show()
+            }
+            CapsuleDetailEvent.NavigateBack -> findNavController().navigateUp()
         }
     }
 
     private fun bindCapsule(capsuleRecord: CapsuleRecord) {
         val capsule = capsuleRecord.capsule
         val metadata = capsuleRecord.metadata
-        currentCapsule = capsule
 
         titleInput.setText(capsule.title)
         statusText.text = getString(
@@ -173,91 +197,17 @@ class CapsuleDetailFragment : Fragment() {
         imagePlaceholderText.text = getString(R.string.detail_image_missing)
     }
 
-    private fun saveChanges() {
-        val capsule = currentCapsule ?: return
-        val title = titleInput.text?.toString()?.trim().orEmpty()
-        val body = bodyInput.text?.toString()?.trim().orEmpty()
-
-        var valid = true
-
-        if (title.length < TITLE_MIN_LENGTH) {
-            titleLayout.error = getString(R.string.error_title_too_short)
-            valid = false
-        } else {
-            titleLayout.error = null
-        }
-
-        if (body.length < BODY_MIN_LENGTH) {
-            bodyLayout.error = getString(R.string.error_story_too_short)
-            valid = false
-        } else {
-            bodyLayout.error = null
-        }
-
-        if (!valid) return
-
-        setActionState(isSaving = true, isDeleting = false)
-
-        val updatedCapsule = capsule.copy(
-            title = title,
-            storyText = body,
-            updatedAt = System.currentTimeMillis()
-        )
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    DatabaseProvider.getDatabase(requireContext())
-                        .capsuleDao()
-                        .upsertCapsule(updatedCapsule)
-                }
-            }.onSuccess {
-                currentCapsule = updatedCapsule
-                setActionState(isSaving = false, isDeleting = false)
-                Toast.makeText(requireContext(), R.string.capsule_updated_message, Toast.LENGTH_SHORT).show()
-                findNavController().navigateUp()
-            }.onFailure {
-                setActionState(isSaving = false, isDeleting = false)
-                Snackbar.make(requireView(), R.string.capsule_update_failed_message, Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-
     private fun confirmDelete() {
-        if (currentCapsule == null) return
+        if (viewModel.uiState.value.record == null) return
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.delete_capsule_dialog_title)
             .setMessage(R.string.delete_capsule_dialog_message)
             .setNegativeButton(R.string.cancel_button, null)
             .setPositiveButton(R.string.delete_capsule_confirm_button) { _, _ ->
-                deleteCapsule()
+                viewModel.deleteCapsule()
             }
             .show()
-    }
-
-    private fun deleteCapsule() {
-        val capsule = currentCapsule ?: return
-        setActionState(isSaving = false, isDeleting = true)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    val database = DatabaseProvider.getDatabase(requireContext())
-                    database.capsuleDao().deleteCapsule(capsule)
-                    if (capsule.mediaType == CapsuleMediaType.IMAGE) {
-                        CapsuleImageStorage.deleteStoredImage(capsule.mediaLocalPath)
-                    }
-                }
-            }.onSuccess {
-                setActionState(isSaving = false, isDeleting = false)
-                Toast.makeText(requireContext(), R.string.capsule_deleted_message, Toast.LENGTH_SHORT).show()
-                findNavController().navigateUp()
-            }.onFailure {
-                setActionState(isSaving = false, isDeleting = false)
-                Snackbar.make(requireView(), R.string.capsule_delete_failed_message, Snackbar.LENGTH_LONG).show()
-            }
-        }
     }
 
     private fun setActionState(isSaving: Boolean, isDeleting: Boolean) {
@@ -278,7 +228,5 @@ class CapsuleDetailFragment : Fragment() {
 
     companion object {
         const val ARG_CAPSULE_ID = "capsuleId"
-        private const val TITLE_MIN_LENGTH = 3
-        private const val BODY_MIN_LENGTH = 10
     }
 }
