@@ -1,5 +1,7 @@
 package com.echoes.app.ui.capsule.create
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -21,9 +23,11 @@ import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.util.CapsuleImageStorage
 import com.echoes.app.util.CapsuleMetadataFormatter
+import com.echoes.app.util.DateFormatters
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import java.util.Calendar
 import kotlinx.coroutines.launch
 
 class CreateTextCapsuleFragment : Fragment() {
@@ -56,6 +60,9 @@ class CreateTextCapsuleFragment : Fragment() {
     private lateinit var imagePreview: ImageView
     private lateinit var imagePlaceholderText: TextView
     private lateinit var imageStatusText: TextView
+    private lateinit var chooseUnlockDateButton: Button
+    private lateinit var clearUnlockDateButton: Button
+    private lateinit var timeUnlockStatusText: TextView
     private lateinit var metadataOwnerText: TextView
     private lateinit var metadataMediaTypeText: TextView
     private lateinit var metadataUnlockTypeText: TextView
@@ -89,6 +96,9 @@ class CreateTextCapsuleFragment : Fragment() {
         imagePreview = view.findViewById(R.id.createImagePreview)
         imagePlaceholderText = view.findViewById(R.id.createImagePlaceholderText)
         imageStatusText = view.findViewById(R.id.createImageStatusText)
+        chooseUnlockDateButton = view.findViewById(R.id.chooseUnlockDateButton)
+        clearUnlockDateButton = view.findViewById(R.id.clearUnlockDateButton)
+        timeUnlockStatusText = view.findViewById(R.id.timeUnlockStatusText)
         metadataOwnerText = view.findViewById(R.id.createMetadataOwnerText)
         metadataMediaTypeText = view.findViewById(R.id.createMetadataMediaTypeText)
         metadataUnlockTypeText = view.findViewById(R.id.createMetadataUnlockTypeText)
@@ -120,6 +130,14 @@ class CreateTextCapsuleFragment : Fragment() {
         removeImageButton.setOnClickListener {
             viewModel.clearSelectedImage()
         }
+
+        chooseUnlockDateButton.setOnClickListener {
+            showDatePicker()
+        }
+
+        clearUnlockDateButton.setOnClickListener {
+            viewModel.clearDateUnlock()
+        }
     }
 
     private fun collectViewModel() {
@@ -144,8 +162,9 @@ class CreateTextCapsuleFragment : Fragment() {
         titleLayout.error = state.titleErrorResId?.let(::getString)
         bodyLayout.error = state.bodyErrorResId?.let(::getString)
         setSavingState(state.isSaving)
-        bindMetadataPreview(state.selectedImagePath)
+        bindMetadataPreview(state.selectedImagePath, state.selectedUnlockAt)
         bindImagePreview(state.selectedImagePath)
+        bindTimeUnlockPreview(state.selectedUnlockAt)
     }
 
     private fun handleEvent(event: CreateTextCapsuleEvent) {
@@ -158,7 +177,7 @@ class CreateTextCapsuleFragment : Fragment() {
         }
     }
 
-    private fun bindMetadataPreview(selectedImagePath: String?) {
+    private fun bindMetadataPreview(selectedImagePath: String?, selectedUnlockAt: Long?) {
         metadataOwnerText.text = getString(
             R.string.create_metadata_owner_value,
             SeedData.LOCAL_USER_NAME,
@@ -173,13 +192,26 @@ class CreateTextCapsuleFragment : Fragment() {
         )
         metadataUnlockTypeText.text = getString(
             R.string.create_metadata_unlock_value,
-            CapsuleMetadataFormatter.unlockTypeLabel(requireContext(), UnlockType.NONE)
+            CapsuleMetadataFormatter.unlockTypeLabel(
+                requireContext(),
+                if (selectedUnlockAt == null) UnlockType.NONE else UnlockType.DATE
+            )
         )
         metadataLockStatusText.text = getString(
             R.string.create_metadata_lock_value,
-            getString(R.string.capsule_status_unlocked)
+            getString(if (selectedUnlockAt == null) R.string.capsule_status_unlocked else R.string.capsule_status_locked)
         )
         metadataTimestampText.text = getString(R.string.create_metadata_timestamps_value)
+    }
+
+    private fun bindTimeUnlockPreview(selectedUnlockAt: Long?) {
+        val hasTimeUnlock = selectedUnlockAt != null
+        timeUnlockStatusText.text = if (selectedUnlockAt == null) {
+            getString(R.string.time_unlock_open_now)
+        } else {
+            getString(R.string.time_unlock_selected, DateFormatters.formatTimestamp(selectedUnlockAt))
+        }
+        clearUnlockDateButton.visibility = if (hasTimeUnlock) View.VISIBLE else View.GONE
     }
 
     private fun bindImagePreview(selectedImagePath: String?) {
@@ -205,8 +237,42 @@ class CreateTextCapsuleFragment : Fragment() {
         chooseImageButton.isEnabled = !isSaving
         captureImageButton.isEnabled = !isSaving
         removeImageButton.isEnabled = !isSaving
+        chooseUnlockDateButton.isEnabled = !isSaving
+        clearUnlockDateButton.isEnabled = !isSaving
         saveButton.text = getString(
             if (isSaving) R.string.saving_capsule_button else R.string.save_capsule_button
         )
+    }
+
+    private fun showDatePicker() {
+        val now = Calendar.getInstance()
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                showTimePicker(year, month, dayOfMonth)
+            },
+            now.get(Calendar.YEAR),
+            now.get(Calendar.MONTH),
+            now.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.minDate = System.currentTimeMillis()
+        }.show()
+    }
+
+    private fun showTimePicker(year: Int, month: Int, dayOfMonth: Int) {
+        val now = Calendar.getInstance()
+        TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minute ->
+                val selectedTime = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth, hourOfDay, minute, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                viewModel.setDateUnlock(selectedTime.timeInMillis)
+            },
+            now.get(Calendar.HOUR_OF_DAY),
+            now.get(Calendar.MINUTE),
+            true
+        ).show()
     }
 }

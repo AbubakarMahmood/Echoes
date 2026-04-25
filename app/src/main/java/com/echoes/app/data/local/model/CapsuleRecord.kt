@@ -26,6 +26,8 @@ data class CapsuleRecord(
             createdAt = capsule.createdAt,
             updatedAt = capsule.updatedAt,
             unlockType = unlockCondition?.conditionType ?: capsule.unlockType,
-            isLocked = capsule.isLocked
+            isLocked = capsule.isLocked,
+            unlockAt = unlockCondition?.unlockAt,
+            satisfiedAt = unlockCondition?.satisfiedAt
         )
 }
