@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 9 checkpoint</string>
-    <string name="welcome_title">Capsules can now wait for a future time.</string>
-    <string name="welcome_subtitle">Create can add a future unlock date, Room stores it as an unlock condition, and archive/detail show whether the capsule is still locked.</string>
+    <string name="welcome_kicker">Day 10 checkpoint</string>
+    <string name="welcome_title">The archive is easier to browse now.</string>
+    <string name="welcome_subtitle">Saved capsules can be filtered by lock state and content type, then sorted newest or oldest first from the archive screen.</string>
     <string name="day_one_heading">What works today</string>
-    <string name="day_one_body">The local text and image flows still work through MVVM, and future-dated capsules are visibly locked until their unlock time passes.</string>
+    <string name="day_one_body">The local text, image, MVVM, and time-unlock flows still work, and the archive now has basic filter and sort controls for faster browsing.</string>
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
     <string name="create_capsule_screen_label">Create Capsule</string>
@@ -51,11 +51,26 @@
     <string name="archive_screen_label">My Archive</string>
     <string name="archive_kicker">Personal archive</string>
     <string name="archive_title">Saved capsules</string>
-    <string name="archive_subtitle">This list is loaded straight from Room, newest first, so it stays useful even before cloud sync exists.</string>
+    <string name="archive_subtitle">This list is loaded straight from Room and can now be filtered by status, grouped by content type, and sorted by saved activity.</string>
     <string name="archive_empty_title">No local capsules yet.</string>
     <string name="archive_empty_body">Create your first text capsule and it will appear here automatically.</string>
     <string name="archive_empty_button">Create first capsule</string>
+    <string name="archive_filtered_empty_title">No capsules match these filters.</string>
+    <string name="archive_filtered_empty_body">Try another status/content combination or reset the archive controls.</string>
+    <string name="archive_clear_filters_button">Clear filters</string>
     <string name="archive_load_failed_message">Could not load the local archive.</string>
+    <string name="archive_browse_title">Browse controls</string>
+    <string name="archive_result_summary">Showing %1$d of %2$d saved capsules</string>
+    <string name="archive_filter_status_label">Lock status</string>
+    <string name="archive_filter_content_label">Content group</string>
+    <string name="archive_filter_all">All</string>
+    <string name="archive_filter_locked">Locked</string>
+    <string name="archive_filter_unlocked">Open</string>
+    <string name="archive_filter_text">Text</string>
+    <string name="archive_filter_images">Images</string>
+    <string name="archive_sort_label">Sort order</string>
+    <string name="archive_sort_newest">Newest</string>
+    <string name="archive_sort_oldest">Oldest</string>
     <string name="archive_item_created_at">Created %1$s</string>
     <string name="archive_item_updated_at">Updated %1$s</string>
     <string name="archive_item_metadata_summary">%1$s • %2$s • %3$s</string>

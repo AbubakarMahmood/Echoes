@@ -16,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.echoes.app.R
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
@@ -27,6 +28,11 @@ class PersonalArchiveFragment : Fragment() {
     private lateinit var emptyStateTitle: TextView
     private lateinit var emptyStateBody: TextView
     private lateinit var emptyStateButton: Button
+    private lateinit var archiveControlsCard: View
+    private lateinit var archiveResultSummaryText: TextView
+    private lateinit var lockFilterGroup: MaterialButtonToggleGroup
+    private lateinit var contentFilterGroup: MaterialButtonToggleGroup
+    private lateinit var sortOptionGroup: MaterialButtonToggleGroup
     private lateinit var adapter: ArchiveCapsuleAdapter
 
     override fun onCreateView(
@@ -53,6 +59,11 @@ class PersonalArchiveFragment : Fragment() {
         emptyStateTitle = view.findViewById(R.id.emptyStateTitle)
         emptyStateBody = view.findViewById(R.id.emptyStateBody)
         emptyStateButton = view.findViewById(R.id.emptyStateButton)
+        archiveControlsCard = view.findViewById(R.id.archiveControlsCard)
+        archiveResultSummaryText = view.findViewById(R.id.archiveResultSummaryText)
+        lockFilterGroup = view.findViewById(R.id.archiveLockFilterGroup)
+        contentFilterGroup = view.findViewById(R.id.archiveContentFilterGroup)
+        sortOptionGroup = view.findViewById(R.id.archiveSortOptionGroup)
 
         adapter = ArchiveCapsuleAdapter { capsule ->
             findNavController().navigate(
@@ -67,7 +78,43 @@ class PersonalArchiveFragment : Fragment() {
 
     private fun bindActions() {
         emptyStateButton.setOnClickListener {
-            findNavController().navigate(R.id.action_archiveFragment_to_createTextCapsuleFragment)
+            if (viewModel.uiState.value.hasArchiveItems) {
+                viewModel.resetBrowsingRules()
+            } else {
+                findNavController().navigate(R.id.action_archiveFragment_to_createTextCapsuleFragment)
+            }
+        }
+
+        lockFilterGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            viewModel.setLockFilter(
+                when (checkedId) {
+                    R.id.archiveLockedButton -> ArchiveLockFilter.LOCKED
+                    R.id.archiveUnlockedButton -> ArchiveLockFilter.UNLOCKED
+                    else -> ArchiveLockFilter.ALL
+                }
+            )
+        }
+
+        contentFilterGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            viewModel.setContentFilter(
+                when (checkedId) {
+                    R.id.archiveTextOnlyButton -> ArchiveContentFilter.TEXT_ONLY
+                    R.id.archiveImagesButton -> ArchiveContentFilter.IMAGES
+                    else -> ArchiveContentFilter.ALL
+                }
+            )
+        }
+
+        sortOptionGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            viewModel.setSortOption(
+                when (checkedId) {
+                    R.id.archiveOldestFirstButton -> ArchiveSortOption.OLDEST_FIRST
+                    else -> ArchiveSortOption.NEWEST_FIRST
+                }
+            )
         }
     }
 
@@ -90,12 +137,71 @@ class PersonalArchiveFragment : Fragment() {
     }
 
     private fun renderState(state: PersonalArchiveUiState) {
+        bindBrowsingControls(state)
+
         adapter.submitList(state.capsules)
-        val hasCapsules = state.capsules.isNotEmpty()
-        recyclerView.visibility = if (hasCapsules) View.VISIBLE else View.GONE
-        emptyStateTitle.visibility = if (hasCapsules) View.GONE else View.VISIBLE
-        emptyStateBody.visibility = if (hasCapsules) View.GONE else View.VISIBLE
-        emptyStateButton.visibility = if (hasCapsules) View.GONE else View.VISIBLE
+        val hasVisibleCapsules = state.capsules.isNotEmpty()
+        val hasArchiveItems = state.hasArchiveItems
+
+        archiveControlsCard.visibility = if (hasArchiveItems) View.VISIBLE else View.GONE
+        recyclerView.visibility = if (hasVisibleCapsules) View.VISIBLE else View.GONE
+        emptyStateTitle.visibility = if (hasVisibleCapsules) View.GONE else View.VISIBLE
+        emptyStateBody.visibility = if (hasVisibleCapsules) View.GONE else View.VISIBLE
+        emptyStateButton.visibility = if (
+            hasVisibleCapsules || (hasArchiveItems && !state.hasActiveBrowsingRules)
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+
+        emptyStateTitle.text = getString(
+            if (hasArchiveItems) R.string.archive_filtered_empty_title else R.string.archive_empty_title
+        )
+        emptyStateBody.text = getString(
+            if (hasArchiveItems) R.string.archive_filtered_empty_body else R.string.archive_empty_body
+        )
+        emptyStateButton.text = getString(
+            if (hasArchiveItems) R.string.archive_clear_filters_button else R.string.archive_empty_button
+        )
+    }
+
+    private fun bindBrowsingControls(state: PersonalArchiveUiState) {
+        archiveResultSummaryText.text = getString(
+            R.string.archive_result_summary,
+            state.capsules.size,
+            state.allCapsules.size
+        )
+
+        checkButton(
+            lockFilterGroup,
+            when (state.lockFilter) {
+                ArchiveLockFilter.ALL -> R.id.archiveAllStatusButton
+                ArchiveLockFilter.LOCKED -> R.id.archiveLockedButton
+                ArchiveLockFilter.UNLOCKED -> R.id.archiveUnlockedButton
+            }
+        )
+        checkButton(
+            contentFilterGroup,
+            when (state.contentFilter) {
+                ArchiveContentFilter.ALL -> R.id.archiveAllContentButton
+                ArchiveContentFilter.TEXT_ONLY -> R.id.archiveTextOnlyButton
+                ArchiveContentFilter.IMAGES -> R.id.archiveImagesButton
+            }
+        )
+        checkButton(
+            sortOptionGroup,
+            when (state.sortOption) {
+                ArchiveSortOption.NEWEST_FIRST -> R.id.archiveNewestFirstButton
+                ArchiveSortOption.OLDEST_FIRST -> R.id.archiveOldestFirstButton
+            }
+        )
+    }
+
+    private fun checkButton(group: MaterialButtonToggleGroup, buttonId: Int) {
+        if (group.checkedButtonId != buttonId) {
+            group.check(buttonId)
+        }
     }
 
     private fun handleEvent(event: PersonalArchiveEvent) {
