@@ -4,6 +4,10 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.echoes.app"
     compileSdk = 35
@@ -63,5 +67,7 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.room:room-runtime:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-auth")
     ksp("androidx.room:room-compiler:2.7.0")
 }
