@@ -76,6 +76,25 @@
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/archiveCloudSyncStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/echoes_kicker_background"
+                    android:padding="14dp"
+                    android:textColor="@color/echoes_ink"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/archiveSyncCloudButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/archive_sync_cloud_button"
+                    app:backgroundTint="@color/echoes_accent" />
+
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"

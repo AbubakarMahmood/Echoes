@@ -30,6 +30,8 @@ class PersonalArchiveFragment : Fragment() {
     private lateinit var emptyStateButton: Button
     private lateinit var archiveControlsCard: View
     private lateinit var archiveResultSummaryText: TextView
+    private lateinit var cloudSyncStatusText: TextView
+    private lateinit var syncCloudButton: Button
     private lateinit var lockFilterGroup: MaterialButtonToggleGroup
     private lateinit var contentFilterGroup: MaterialButtonToggleGroup
     private lateinit var sortOptionGroup: MaterialButtonToggleGroup
@@ -61,6 +63,8 @@ class PersonalArchiveFragment : Fragment() {
         emptyStateButton = view.findViewById(R.id.emptyStateButton)
         archiveControlsCard = view.findViewById(R.id.archiveControlsCard)
         archiveResultSummaryText = view.findViewById(R.id.archiveResultSummaryText)
+        cloudSyncStatusText = view.findViewById(R.id.archiveCloudSyncStatusText)
+        syncCloudButton = view.findViewById(R.id.archiveSyncCloudButton)
         lockFilterGroup = view.findViewById(R.id.archiveLockFilterGroup)
         contentFilterGroup = view.findViewById(R.id.archiveContentFilterGroup)
         sortOptionGroup = view.findViewById(R.id.archiveSortOptionGroup)
@@ -116,6 +120,10 @@ class PersonalArchiveFragment : Fragment() {
                 }
             )
         }
+
+        syncCloudButton.setOnClickListener {
+            viewModel.syncArchiveToCloud()
+        }
     }
 
     private fun collectViewModel() {
@@ -144,6 +152,11 @@ class PersonalArchiveFragment : Fragment() {
         val hasArchiveItems = state.hasArchiveItems
 
         archiveControlsCard.visibility = if (hasArchiveItems) View.VISIBLE else View.GONE
+        cloudSyncStatusText.text = getString(state.cloudSyncStatusResId)
+        syncCloudButton.isEnabled = hasArchiveItems && !state.isSyncing
+        syncCloudButton.text = getString(
+            if (state.isSyncing) R.string.archive_cloud_syncing_button else R.string.archive_sync_cloud_button
+        )
         recyclerView.visibility = if (hasVisibleCapsules) View.VISIBLE else View.GONE
         emptyStateTitle.visibility = if (hasVisibleCapsules) View.GONE else View.VISIBLE
         emptyStateBody.visibility = if (hasVisibleCapsules) View.GONE else View.VISIBLE

@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.echoes.app.R
+import com.echoes.app.data.cloud.CapsuleCloudSyncRepository
+import com.echoes.app.data.cloud.CapsuleSyncStatus
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.repository.CapsuleRepository
@@ -36,11 +38,13 @@ enum class ArchiveSortOption {
 
 data class PersonalArchiveUiState(
     val isLoading: Boolean = false,
+    val isSyncing: Boolean = false,
     val allCapsules: List<CapsuleRecord> = emptyList(),
     val capsules: List<CapsuleRecord> = emptyList(),
     val lockFilter: ArchiveLockFilter = ArchiveLockFilter.ALL,
     val contentFilter: ArchiveContentFilter = ArchiveContentFilter.ALL,
     val sortOption: ArchiveSortOption = ArchiveSortOption.NEWEST_FIRST,
+    @StringRes val cloudSyncStatusResId: Int = R.string.archive_cloud_sync_idle,
     val hasLoaded: Boolean = false
 ) {
     val hasArchiveItems: Boolean
@@ -59,6 +63,7 @@ sealed interface PersonalArchiveEvent {
 class PersonalArchiveViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = CapsuleRepository(application)
+    private val cloudSyncRepository = CapsuleCloudSyncRepository(application)
     private val _uiState = MutableStateFlow(PersonalArchiveUiState())
     val uiState: StateFlow<PersonalArchiveUiState> = _uiState.asStateFlow()
 
@@ -113,6 +118,46 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
                 contentFilter = ArchiveContentFilter.ALL,
                 sortOption = ArchiveSortOption.NEWEST_FIRST
             ).withArchiveRulesApplied()
+        }
+    }
+
+    fun syncArchiveToCloud() {
+        val currentState = _uiState.value
+        if (currentState.isSyncing) return
+
+        _uiState.update {
+            it.copy(
+                isSyncing = true,
+                cloudSyncStatusResId = R.string.archive_cloud_sync_working
+            )
+        }
+
+        viewModelScope.launch {
+            runCatching {
+                cloudSyncRepository.syncCapsules(currentState.allCapsules)
+            }.onSuccess { result ->
+                val messageResId = when (result.status) {
+                    CapsuleSyncStatus.CONFIG_MISSING -> R.string.archive_cloud_sync_missing_config
+                    CapsuleSyncStatus.SIGN_IN_REQUIRED -> R.string.archive_cloud_sync_sign_in_required
+                    CapsuleSyncStatus.NO_LOCAL_CAPSULES -> R.string.archive_cloud_sync_no_capsules
+                    CapsuleSyncStatus.SYNCED -> R.string.archive_cloud_sync_success
+                }
+                _uiState.update {
+                    it.copy(
+                        isSyncing = false,
+                        cloudSyncStatusResId = messageResId
+                    )
+                }
+                _events.emit(PersonalArchiveEvent.ShowMessage(messageResId))
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        isSyncing = false,
+                        cloudSyncStatusResId = R.string.archive_cloud_sync_failed
+                    )
+                }
+                _events.emit(PersonalArchiveEvent.ShowMessage(R.string.archive_cloud_sync_failed))
+            }
         }
     }
 
