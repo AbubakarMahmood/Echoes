@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -48,6 +49,12 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var saveButton: MaterialButton
     private lateinit var deleteButton: MaterialButton
     private lateinit var backButton: MaterialButton
+    private lateinit var favoriteButton: MaterialButton
+    private lateinit var commentsContainer: LinearLayout
+    private lateinit var commentLayout: TextInputLayout
+    private lateinit var commentInput: TextInputEditText
+    private lateinit var addCommentButton: MaterialButton
+    private lateinit var socialLockedText: TextView
     private var lastBoundCapsuleKey: String? = null
 
     override fun onCreateView(
@@ -84,6 +91,12 @@ class CapsuleDetailFragment : Fragment() {
         saveButton = view.findViewById(R.id.detailSaveButton)
         deleteButton = view.findViewById(R.id.detailDeleteButton)
         backButton = view.findViewById(R.id.detailBackButton)
+        favoriteButton = view.findViewById(R.id.detailFavoriteButton)
+        commentsContainer = view.findViewById(R.id.detailCommentsContainer)
+        commentLayout = view.findViewById(R.id.detailCommentLayout)
+        commentInput = view.findViewById(R.id.detailCommentInput)
+        addCommentButton = view.findViewById(R.id.detailAddCommentButton)
+        socialLockedText = view.findViewById(R.id.detailSocialLockedText)
     }
 
     private fun bindActions() {
@@ -100,6 +113,14 @@ class CapsuleDetailFragment : Fragment() {
 
         deleteButton.setOnClickListener {
             confirmDelete()
+        }
+
+        favoriteButton.setOnClickListener {
+            viewModel.toggleFavorite()
+        }
+
+        addCommentButton.setOnClickListener {
+            viewModel.addComment(commentInput.text?.toString().orEmpty())
         }
     }
 
@@ -124,6 +145,7 @@ class CapsuleDetailFragment : Fragment() {
     private fun renderState(state: CapsuleDetailUiState) {
         titleLayout.error = state.titleErrorResId?.let(::getString)
         bodyLayout.error = state.bodyErrorResId?.let(::getString)
+        commentLayout.error = state.commentErrorResId?.let(::getString)
         setActionState(isSaving = state.isSaving, isDeleting = state.isDeleting)
 
         val record = state.record ?: return
@@ -133,12 +155,16 @@ class CapsuleDetailFragment : Fragment() {
             lastBoundCapsuleKey = capsuleKey
             bindCapsule(record)
         }
+        bindSocialState(state)
     }
 
     private fun handleEvent(event: CapsuleDetailEvent) {
         when (event) {
             is CapsuleDetailEvent.ShowMessage -> {
                 Snackbar.make(requireView(), event.messageResId, Snackbar.LENGTH_LONG).show()
+                if (event.messageResId == R.string.comment_added_message) {
+                    commentInput.setText("")
+                }
             }
             CapsuleDetailEvent.NavigateBack -> findNavController().navigateUp()
         }
@@ -181,6 +207,63 @@ class CapsuleDetailFragment : Fragment() {
         )
         bindImage(capsule)
         bodyInput.setText(capsule.storyText)
+    }
+
+    private fun bindSocialState(state: CapsuleDetailUiState) {
+        val record = state.record ?: return
+        val isUnlocked = !record.metadata.isLocked
+        val isBusy = state.isSaving || state.isDeleting || state.isUpdatingSocial
+
+        favoriteButton.isEnabled = isUnlocked && !isBusy
+        favoriteButton.text = getString(
+            if (state.socialState.isFavorite) {
+                R.string.favorite_remove_button
+            } else {
+                R.string.favorite_add_button
+            }
+        )
+        commentInput.isEnabled = isUnlocked && !isBusy
+        addCommentButton.isEnabled = isUnlocked && !isBusy
+        addCommentButton.text = getString(
+            if (state.isUpdatingSocial) R.string.comment_saving_button else R.string.comment_add_button
+        )
+        socialLockedText.visibility = if (isUnlocked) View.GONE else View.VISIBLE
+
+        commentsContainer.removeAllViews()
+        if (state.socialState.comments.isEmpty()) {
+            commentsContainer.addView(commentTextView(getString(R.string.comments_empty_message), isMuted = true))
+        } else {
+            state.socialState.comments.forEach { comment ->
+                commentsContainer.addView(
+                    commentTextView(
+                        getString(
+                            R.string.comment_item_value,
+                            comment.authorDisplayName,
+                            DateFormatters.formatTimestamp(comment.createdAt),
+                            comment.body
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    private fun commentTextView(text: String, isMuted: Boolean = false): TextView {
+        return TextView(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = (8 * resources.displayMetrics.density).toInt()
+            }
+            setText(text)
+            setTextColor(
+                requireContext().getColor(
+                    if (isMuted) R.color.echoes_muted else R.color.echoes_ink
+                )
+            )
+            textSize = 14f
+        }
     }
 
     private fun bindImage(capsule: CapsuleEntity) {

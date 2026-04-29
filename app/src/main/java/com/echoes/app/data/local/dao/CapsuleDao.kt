@@ -40,6 +40,10 @@ interface CapsuleDao {
     @Query("SELECT * FROM capsules WHERE ownerId = :ownerId ORDER BY createdAt DESC")
     suspend fun getCapsuleRecordsForOwner(ownerId: String): List<CapsuleRecord>
 
+    @Transaction
+    @Query("SELECT * FROM capsules ORDER BY createdAt DESC")
+    suspend fun getAllCapsuleRecords(): List<CapsuleRecord>
+
     @Delete
     suspend fun deleteCapsule(capsule: CapsuleEntity)
 }
