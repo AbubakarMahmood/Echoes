@@ -6,6 +6,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.echoes.app.R
+import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.repository.CapsuleRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ data class CreateTextCapsuleUiState(
     val isSaving: Boolean = false,
     val selectedImagePath: String? = null,
     val selectedUnlockAt: Long? = null,
+    val locationUnlockTarget: LocationUnlockTarget? = null,
     @StringRes val titleErrorResId: Int? = null,
     @StringRes val bodyErrorResId: Int? = null
 )
@@ -101,12 +103,34 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
                 return@launch
             }
 
-            _uiState.update { it.copy(selectedUnlockAt = unlockAt) }
+            _uiState.update {
+                it.copy(
+                    selectedUnlockAt = unlockAt,
+                    locationUnlockTarget = null
+                )
+            }
         }
     }
 
     fun clearDateUnlock() {
         _uiState.update { it.copy(selectedUnlockAt = null) }
+    }
+
+    fun setLocationUnlock(latitude: Double, longitude: Double) {
+        _uiState.update {
+            it.copy(
+                selectedUnlockAt = null,
+                locationUnlockTarget = LocationUnlockTarget(
+                    latitude = latitude,
+                    longitude = longitude,
+                    radiusMeters = DEFAULT_LOCATION_UNLOCK_RADIUS_METERS
+                )
+            )
+        }
+    }
+
+    fun clearLocationUnlock() {
+        _uiState.update { it.copy(locationUnlockTarget = null) }
     }
 
     fun cleanupPendingAttachments() {
@@ -135,11 +159,12 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
 
         val imagePath = _uiState.value.selectedImagePath
         val unlockAt = _uiState.value.selectedUnlockAt
+        val locationUnlockTarget = _uiState.value.locationUnlockTarget
         _uiState.update { it.copy(isSaving = true) }
 
         viewModelScope.launch {
             runCatching {
-                repository.createCapsule(title, body, imagePath, unlockAt)
+                repository.createCapsule(title, body, imagePath, unlockAt, locationUnlockTarget)
             }.onSuccess {
                 hasSavedCapsule = true
                 _uiState.update { it.copy(isSaving = false) }
@@ -168,5 +193,6 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
     companion object {
         private const val TITLE_MIN_LENGTH = 3
         private const val BODY_MIN_LENGTH = 10
+        private const val DEFAULT_LOCATION_UNLOCK_RADIUS_METERS = 150
     }
 }

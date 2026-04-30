@@ -28,6 +28,9 @@ data class CapsuleRecord(
             unlockType = unlockCondition?.conditionType ?: capsule.unlockType,
             isLocked = capsule.isLocked,
             unlockAt = unlockCondition?.unlockAt,
+            latitude = unlockCondition?.latitude,
+            longitude = unlockCondition?.longitude,
+            radiusMeters = unlockCondition?.radiusMeters,
             satisfiedAt = unlockCondition?.satisfiedAt
         )
 }

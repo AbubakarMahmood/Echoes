@@ -30,12 +30,27 @@ object CapsuleMetadataFormatter {
     }
 
     fun unlockScheduleLabel(context: Context, metadata: CapsuleMetadata): String? {
-        if (metadata.unlockType != UnlockType.DATE || metadata.unlockAt == null) return null
+        return when (metadata.unlockType) {
+            UnlockType.DATE -> {
+                if (metadata.unlockAt == null) return null
 
-        return context.getString(
-            if (metadata.isLocked) R.string.unlock_schedule_locked_until else R.string.unlock_schedule_unlocked_at,
-            DateFormatters.formatTimestamp(metadata.unlockAt)
-        )
+                context.getString(
+                    if (metadata.isLocked) R.string.unlock_schedule_locked_until else R.string.unlock_schedule_unlocked_at,
+                    DateFormatters.formatTimestamp(metadata.unlockAt)
+                )
+            }
+
+            UnlockType.LOCATION -> {
+                val radiusMeters = metadata.radiusMeters ?: return null
+                context.getString(
+                    if (metadata.isLocked) R.string.unlock_location_locked_near else R.string.unlock_location_unlocked,
+                    radiusMeters
+                )
+            }
+
+            UnlockType.NONE,
+            UnlockType.EVENT -> null
+        }
     }
 
     fun mediaTypeLabel(context: Context, mediaType: CapsuleMediaType): String {

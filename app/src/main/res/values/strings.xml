@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 14 checkpoint</string>
-    <string name="welcome_title">Discovery and social actions are now in the flow.</string>
-    <string name="welcome_subtitle">Unlocked capsules have a browseable discovery path, and capsule detail now supports local favourites and comments.</string>
+    <string name="welcome_kicker">Day 15 checkpoint</string>
+    <string name="welcome_title">Location unlocks now ask first.</string>
+    <string name="welcome_subtitle">Capsules can be locked to a foreground location check, with permission requested only when the user chooses or checks a location unlock.</string>
     <string name="day_one_heading">What works today</string>
-    <string name="day_one_body">The app now moves coherently through auth, create, archive, discovery, detail, Firestore sync, favourites, and comments while keeping Room as the local base.</string>
+    <string name="day_one_body">The app now moves through auth, create, archive, discovery, detail, Firestore sync, favourites, comments, and consent-based location unlock while keeping Room as the local base.</string>
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
     <string name="view_discovery_button">Browse discovery</string>
@@ -34,7 +34,7 @@
     <string name="create_capsule_screen_label">Create Capsule</string>
     <string name="create_capsule_kicker">Text capsule</string>
     <string name="create_capsule_title">Write the story you want to seal.</string>
-    <string name="create_capsule_subtitle">This version is still local-first, but it can now attach one image and optionally lock the capsule until a future date and time.</string>
+    <string name="create_capsule_subtitle">This version is still local-first, but it can attach one image and optionally lock the capsule by time or foreground location check.</string>
     <string name="title_input_label">Capsule title</string>
     <string name="story_input_label">Story text</string>
     <string name="create_capsule_hint">Basic validation is enabled now: title must be at least 3 characters and story text at least 10 characters.</string>
@@ -58,6 +58,15 @@
     <string name="choose_unlock_time_button">Choose unlock date and time</string>
     <string name="clear_unlock_time_button">Clear time unlock</string>
     <string name="time_unlock_must_be_future">Choose a future date and time for a time-locked capsule.</string>
+    <string name="location_unlock_title">Optional location unlock</string>
+    <string name="location_unlock_subtitle">Use your current foreground location as the unlock spot. The app only asks for location when you tap this button or later check the capsule.</string>
+    <string name="location_unlock_open_now">Location unlock: not set</string>
+    <string name="location_unlock_selected">Location unlock: locked until checked within %1$d metres of this spot</string>
+    <string name="choose_location_unlock_button">Use current location as unlock spot</string>
+    <string name="clear_location_unlock_button">Clear location unlock</string>
+    <string name="location_unlock_target_added_message">Location unlock spot saved for this capsule.</string>
+    <string name="location_permission_denied_message">Location permission was denied. The app still works without location unlock.</string>
+    <string name="location_unavailable_message">No current location was available. Try again after enabling location services.</string>
     <string name="create_metadata_title">Metadata that will be stored</string>
     <string name="create_metadata_owner_value">Owner: %1$s (%2$s)</string>
     <string name="create_metadata_media_value">Media type: %1$s</string>
@@ -131,6 +140,15 @@
     <string name="detail_media_type_value">Media type: %1$s</string>
     <string name="detail_unlock_type_value">Unlock type: %1$s</string>
     <string name="detail_lock_status_value">Lock status: %1$s</string>
+    <string name="detail_location_unlock_title">Location unlock check</string>
+    <string name="detail_location_unlock_locked">Locked until you check in within %1$d metres of the saved spot.</string>
+    <string name="detail_location_unlock_open">Location verified within %1$d metres. This capsule is open.</string>
+    <string name="location_unlock_check_button">Check my location</string>
+    <string name="location_unlock_checking_button">Checking location...</string>
+    <string name="location_unlock_success_message">Location verified. Capsule unlocked.</string>
+    <string name="location_unlock_not_close_message">You are not close enough to unlock this capsule yet.</string>
+    <string name="location_unlock_already_open_message">This capsule is already open.</string>
+    <string name="location_unlock_check_failed_message">Could not check the location unlock right now.</string>
     <string name="detail_image_title">Attached image</string>
     <string name="detail_image_content_description">Saved capsule image</string>
     <string name="detail_image_missing">The image reference exists, but the file could not be opened.</string>
@@ -172,4 +190,6 @@
     <string name="unlock_type_event">University event</string>
     <string name="unlock_schedule_locked_until">Locked until %1$s</string>
     <string name="unlock_schedule_unlocked_at">Unlocked after %1$s</string>
+    <string name="unlock_location_locked_near">Locked near saved spot (%1$d m radius)</string>
+    <string name="unlock_location_unlocked">Location verified (%1$d m radius)</string>
 </resources>

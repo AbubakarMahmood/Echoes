@@ -24,6 +24,7 @@ data class CapsuleDetailUiState(
     val isSaving: Boolean = false,
     val isDeleting: Boolean = false,
     val isUpdatingSocial: Boolean = false,
+    val isCheckingLocation: Boolean = false,
     @StringRes val titleErrorResId: Int? = null,
     @StringRes val bodyErrorResId: Int? = null,
     @StringRes val commentErrorResId: Int? = null
@@ -159,6 +160,41 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
             }.onFailure {
                 _uiState.update { it.copy(isUpdatingSocial = false) }
                 _events.emit(CapsuleDetailEvent.ShowMessage(R.string.comment_add_failed_message))
+            }
+        }
+    }
+
+    fun checkLocationUnlock(currentLatitude: Double, currentLongitude: Double) {
+        val record = _uiState.value.record ?: return
+        if (_uiState.value.isCheckingLocation) return
+
+        _uiState.update { it.copy(isCheckingLocation = true) }
+        viewModelScope.launch {
+            runCatching {
+                repository.checkLocationUnlock(
+                    capsuleId = record.capsule.capsuleId,
+                    currentLatitude = currentLatitude,
+                    currentLongitude = currentLongitude
+                )
+            }.onSuccess { result ->
+                _uiState.update {
+                    it.copy(
+                        isCheckingLocation = false,
+                        record = result.record ?: it.record
+                    )
+                }
+                _events.emit(
+                    CapsuleDetailEvent.ShowMessage(
+                        when {
+                            result.didUnlock -> R.string.location_unlock_success_message
+                            !result.isWithinRange -> R.string.location_unlock_not_close_message
+                            else -> R.string.location_unlock_already_open_message
+                        }
+                    )
+                )
+            }.onFailure {
+                _uiState.update { it.copy(isCheckingLocation = false) }
+                _events.emit(CapsuleDetailEvent.ShowMessage(R.string.location_unlock_check_failed_message))
             }
         }
     }
