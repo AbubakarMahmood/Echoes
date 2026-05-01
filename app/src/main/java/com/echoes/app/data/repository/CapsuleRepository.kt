@@ -14,6 +14,7 @@ import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.local.model.CapsuleSocialState
 import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.local.model.UnlockType
+import com.echoes.app.notifications.CapsuleUnlockNotifier
 import com.echoes.app.util.CapsuleImageStorage
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -84,6 +85,15 @@ class CapsuleRepository(context: Context) {
             database.userDao().upsertUser(SeedData.localUserForWrite(existingUser, now))
             database.capsuleDao().upsertCapsule(capsule)
             database.unlockConditionDao().upsertUnlockCondition(unlockCondition)
+
+            if (unlockType == UnlockType.DATE && storedUnlockAt != null) {
+                CapsuleUnlockNotifier.scheduleUnlockNotification(
+                    context = appContext,
+                    capsuleId = capsuleId,
+                    title = title,
+                    unlockAt = storedUnlockAt
+                )
+            }
         }
     }
 
@@ -208,6 +218,7 @@ class CapsuleRepository(context: Context) {
             database.favoriteDao().deleteFavoritesForCapsule(capsule.capsuleId)
             database.commentDao().deleteCommentsForCapsule(capsule.capsuleId)
             database.capsuleDao().deleteCapsule(capsule)
+            CapsuleUnlockNotifier.cancelUnlockNotification(appContext, capsule.capsuleId)
             if (capsule.mediaType == CapsuleMediaType.IMAGE) {
                 CapsuleImageStorage.deleteStoredImage(capsule.mediaLocalPath)
             }

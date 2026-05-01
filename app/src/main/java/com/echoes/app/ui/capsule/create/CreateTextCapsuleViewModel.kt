@@ -145,17 +145,9 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
     fun saveCapsule(title: String, body: String) {
         if (_uiState.value.isSaving) return
 
-        val titleError = if (title.length < TITLE_MIN_LENGTH) R.string.error_title_too_short else null
-        val bodyError = if (body.length < BODY_MIN_LENGTH) R.string.error_story_too_short else null
-
-        _uiState.update {
-            it.copy(
-                titleErrorResId = titleError,
-                bodyErrorResId = bodyError
-            )
-        }
-
-        if (titleError != null || bodyError != null) return
+        val trimmedTitle = title.trim()
+        val trimmedBody = body.trim()
+        if (!validateDraft(trimmedTitle, trimmedBody)) return
 
         val imagePath = _uiState.value.selectedImagePath
         val unlockAt = _uiState.value.selectedUnlockAt
@@ -164,7 +156,7 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
 
         viewModelScope.launch {
             runCatching {
-                repository.createCapsule(title, body, imagePath, unlockAt, locationUnlockTarget)
+                repository.createCapsule(trimmedTitle, trimmedBody, imagePath, unlockAt, locationUnlockTarget)
             }.onSuccess {
                 hasSavedCapsule = true
                 _uiState.update { it.copy(isSaving = false) }
@@ -174,6 +166,30 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
                 _events.emit(CreateTextCapsuleEvent.ShowMessage(R.string.capsule_save_failed_message))
             }
         }
+    }
+
+    fun validateDraft(title: String, body: String): Boolean {
+        val trimmedTitle = title.trim()
+        val trimmedBody = body.trim()
+        val titleError = when {
+            trimmedTitle.length < TITLE_MIN_LENGTH -> R.string.error_title_too_short
+            trimmedTitle.length > TITLE_MAX_LENGTH -> R.string.error_title_too_long
+            else -> null
+        }
+        val bodyError = when {
+            trimmedBody.length < BODY_MIN_LENGTH -> R.string.error_story_too_short
+            trimmedBody.length > BODY_MAX_LENGTH -> R.string.error_story_too_long
+            else -> null
+        }
+
+        _uiState.update {
+            it.copy(
+                titleErrorResId = titleError,
+                bodyErrorResId = bodyError
+            )
+        }
+
+        return titleError == null && bodyError == null
     }
 
     override fun onCleared() {
@@ -192,7 +208,9 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
 
     companion object {
         private const val TITLE_MIN_LENGTH = 3
+        private const val TITLE_MAX_LENGTH = 80
         private const val BODY_MIN_LENGTH = 10
+        private const val BODY_MAX_LENGTH = 2000
         private const val DEFAULT_LOCATION_UNLOCK_RADIUS_METERS = 150
     }
 }

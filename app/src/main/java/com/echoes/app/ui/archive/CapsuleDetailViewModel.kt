@@ -136,10 +136,10 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
         if (_uiState.value.isUpdatingSocial) return
 
         val trimmedBody = body.trim()
-        val commentError = if (trimmedBody.length < COMMENT_MIN_LENGTH) {
-            R.string.comment_body_error
-        } else {
-            null
+        val commentError = when {
+            trimmedBody.length < COMMENT_MIN_LENGTH -> R.string.comment_body_error
+            trimmedBody.length > COMMENT_MAX_LENGTH -> R.string.comment_body_too_long_error
+            else -> null
         }
         _uiState.update { it.copy(commentErrorResId = commentError) }
         if (commentError != null) return
@@ -203,8 +203,18 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
         val capsule = _uiState.value.record?.capsule ?: return
         if (_uiState.value.isSaving) return
 
-        val titleError = if (title.length < TITLE_MIN_LENGTH) R.string.error_title_too_short else null
-        val bodyError = if (body.length < BODY_MIN_LENGTH) R.string.error_story_too_short else null
+        val trimmedTitle = title.trim()
+        val trimmedBody = body.trim()
+        val titleError = when {
+            trimmedTitle.length < TITLE_MIN_LENGTH -> R.string.error_title_too_short
+            trimmedTitle.length > TITLE_MAX_LENGTH -> R.string.error_title_too_long
+            else -> null
+        }
+        val bodyError = when {
+            trimmedBody.length < BODY_MIN_LENGTH -> R.string.error_story_too_short
+            trimmedBody.length > BODY_MAX_LENGTH -> R.string.error_story_too_long
+            else -> null
+        }
 
         _uiState.update {
             it.copy(
@@ -219,7 +229,7 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
 
         viewModelScope.launch {
             runCatching {
-                repository.updateCapsule(capsule, title, body)
+                repository.updateCapsule(capsule, trimmedTitle, trimmedBody)
             }.onSuccess { updatedCapsule ->
                 _uiState.update { state ->
                     state.copy(
@@ -258,7 +268,10 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
 
     companion object {
         private const val TITLE_MIN_LENGTH = 3
+        private const val TITLE_MAX_LENGTH = 80
         private const val BODY_MIN_LENGTH = 10
+        private const val BODY_MAX_LENGTH = 2000
         private const val COMMENT_MIN_LENGTH = 2
+        private const val COMMENT_MAX_LENGTH = 300
     }
 }

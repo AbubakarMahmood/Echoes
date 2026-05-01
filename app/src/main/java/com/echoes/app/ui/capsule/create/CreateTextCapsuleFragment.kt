@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,7 @@ import com.echoes.app.data.local.SeedData
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.local.model.UnlockType
+import com.echoes.app.notifications.CapsuleUnlockNotifier
 import com.echoes.app.util.CapsuleImageStorage
 import com.echoes.app.util.CapsuleMetadataFormatter
 import com.echoes.app.util.DateFormatters
@@ -61,6 +63,24 @@ class CreateTextCapsuleFragment : Fragment() {
         }
     }
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        Snackbar.make(
+            requireView(),
+            if (isGranted) {
+                R.string.unlock_notification_permission_granted_message
+            } else {
+                R.string.unlock_notification_permission_denied_message
+            },
+            Snackbar.LENGTH_LONG
+        ).show()
+        pendingSaveRequest?.let { request ->
+            viewModel.saveCapsule(request.title, request.body)
+        }
+        pendingSaveRequest = null
+    }
+
     private lateinit var titleLayout: TextInputLayout
     private lateinit var bodyLayout: TextInputLayout
     private lateinit var titleInput: TextInputEditText
@@ -84,6 +104,7 @@ class CreateTextCapsuleFragment : Fragment() {
     private lateinit var metadataUnlockTypeText: TextView
     private lateinit var metadataLockStatusText: TextView
     private lateinit var metadataTimestampText: TextView
+    private var pendingSaveRequest: PendingSaveRequest? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -127,10 +148,7 @@ class CreateTextCapsuleFragment : Fragment() {
 
     private fun bindActions() {
         saveButton.setOnClickListener {
-            viewModel.saveCapsule(
-                title = titleInput.text?.toString()?.trim().orEmpty(),
-                body = bodyInput.text?.toString()?.trim().orEmpty()
-            )
+            attemptSaveCapsule()
         }
 
         cancelButton.setOnClickListener {
@@ -165,6 +183,23 @@ class CreateTextCapsuleFragment : Fragment() {
         clearLocationUnlockButton.setOnClickListener {
             viewModel.clearLocationUnlock()
         }
+    }
+
+    private fun attemptSaveCapsule() {
+        val title = titleInput.text?.toString()?.trim().orEmpty()
+        val body = bodyInput.text?.toString()?.trim().orEmpty()
+        if (!viewModel.validateDraft(title, body)) return
+
+        val shouldRequestNotificationPermission = viewModel.uiState.value.selectedUnlockAt != null &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !CapsuleUnlockNotifier.hasNotificationPermission(requireContext())
+        if (shouldRequestNotificationPermission) {
+            pendingSaveRequest = PendingSaveRequest(title, body)
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
+        }
+
+        viewModel.saveCapsule(title, body)
     }
 
     private fun collectViewModel() {
@@ -354,4 +389,9 @@ class CreateTextCapsuleFragment : Fragment() {
         viewModel.setLocationUnlock(location.latitude, location.longitude)
         Snackbar.make(requireView(), R.string.location_unlock_target_added_message, Snackbar.LENGTH_SHORT).show()
     }
+
+    private data class PendingSaveRequest(
+        val title: String,
+        val body: String
+    )
 }

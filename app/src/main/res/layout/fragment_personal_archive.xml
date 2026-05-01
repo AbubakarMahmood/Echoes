@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/echoes_canvas">
+    android:background="@color/echoes_canvas"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,6 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:accessibilityHeading="true"
             android:text="@string/archive_title"
             android:textColor="@color/echoes_ink"
             android:textSize="30sp"
@@ -80,6 +82,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    android:accessibilityLiveRegion="polite"
                     android:background="@drawable/echoes_kicker_background"
                     android:padding="14dp"
                     android:textColor="@color/echoes_ink"
@@ -108,6 +111,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:contentDescription="@string/archive_filter_status_label"
                     app:checkedButton="@id/archiveAllStatusButton"
                     app:selectionRequired="true"
                     app:singleSelection="true">
@@ -151,6 +155,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:contentDescription="@string/archive_filter_content_label"
                     app:checkedButton="@id/archiveAllContentButton"
                     app:selectionRequired="true"
                     app:singleSelection="true">
@@ -194,6 +199,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:contentDescription="@string/archive_sort_label"
                     app:checkedButton="@id/archiveNewestFirstButton"
                     app:selectionRequired="true"
                     app:singleSelection="true">
