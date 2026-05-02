@@ -38,10 +38,18 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/archiveItemTimestamp"
+            android:id="@+id/archiveItemMetadata"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:textColor="@color/echoes_muted"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/archiveItemTimestamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:textColor="@color/echoes_muted"
             android:textSize="14sp" />
 

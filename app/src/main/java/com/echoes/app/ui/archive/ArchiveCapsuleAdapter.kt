@@ -6,16 +6,17 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.echoes.app.R
-import com.echoes.app.data.local.entity.CapsuleEntity
+import com.echoes.app.data.local.model.CapsuleRecord
+import com.echoes.app.util.CapsuleMetadataFormatter
 import com.echoes.app.util.DateFormatters
 
 class ArchiveCapsuleAdapter(
-    private val onCapsuleSelected: (CapsuleEntity) -> Unit
+    private val onCapsuleSelected: (CapsuleRecord) -> Unit
 ) : RecyclerView.Adapter<ArchiveCapsuleAdapter.ArchiveCapsuleViewHolder>() {
 
-    private val items = mutableListOf<CapsuleEntity>()
+    private val items = mutableListOf<CapsuleRecord>()
 
-    fun submitList(capsules: List<CapsuleEntity>) {
+    fun submitList(capsules: List<CapsuleRecord>) {
         items.clear()
         items.addAll(capsules)
         notifyDataSetChanged()
@@ -35,28 +36,36 @@ class ArchiveCapsuleAdapter(
 
     class ArchiveCapsuleViewHolder(
         itemView: View,
-        private val onCapsuleSelected: (CapsuleEntity) -> Unit
+        private val onCapsuleSelected: (CapsuleRecord) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val titleText: TextView = itemView.findViewById(R.id.archiveItemTitle)
         private val statusText: TextView = itemView.findViewById(R.id.archiveItemStatus)
+        private val metadataText: TextView = itemView.findViewById(R.id.archiveItemMetadata)
         private val timestampText: TextView = itemView.findViewById(R.id.archiveItemTimestamp)
         private val previewText: TextView = itemView.findViewById(R.id.archiveItemPreview)
 
-        fun bind(capsule: CapsuleEntity) {
+        fun bind(record: CapsuleRecord) {
+            val capsule = record.capsule
+            val metadata = record.metadata
+
             titleText.text = capsule.title
             statusText.text = itemView.context.getString(
-                if (capsule.isLocked) R.string.capsule_status_locked else R.string.capsule_status_unlocked
+                if (metadata.isLocked) R.string.capsule_status_locked else R.string.capsule_status_unlocked
             )
-            val hasBeenEdited = capsule.updatedAt > capsule.createdAt
+            metadataText.text = itemView.context.getString(
+                R.string.archive_item_metadata_summary,
+                CapsuleMetadataFormatter.ownerSummary(itemView.context, metadata),
+                CapsuleMetadataFormatter.unlockTypeLabel(itemView.context, metadata.unlockType)
+            )
             timestampText.text = itemView.context.getString(
-                if (hasBeenEdited) R.string.archive_item_updated_at else R.string.archive_item_created_at,
-                DateFormatters.formatTimestamp(if (hasBeenEdited) capsule.updatedAt else capsule.createdAt)
+                if (metadata.hasBeenEdited) R.string.archive_item_updated_at else R.string.archive_item_created_at,
+                DateFormatters.formatTimestamp(if (metadata.hasBeenEdited) metadata.updatedAt else metadata.createdAt)
             )
             previewText.text = capsule.storyText
 
             itemView.setOnClickListener {
-                onCapsuleSelected(capsule)
+                onCapsuleSelected(record)
             }
         }
     }

@@ -45,7 +45,7 @@ class PersonalArchiveFragment : Fragment() {
         adapter = ArchiveCapsuleAdapter { capsule ->
             findNavController().navigate(
                 R.id.action_archiveFragment_to_capsuleDetailFragment,
-                bundleOf(CapsuleDetailFragment.ARG_CAPSULE_ID to capsule.capsuleId)
+                bundleOf(CapsuleDetailFragment.ARG_CAPSULE_ID to capsule.capsule.capsuleId)
             )
         }
 
@@ -68,7 +68,7 @@ class PersonalArchiveFragment : Fragment() {
                 withContext(Dispatchers.IO) {
                     DatabaseProvider.getDatabase(requireContext())
                         .capsuleDao()
-                        .getCapsulesForOwner(SeedData.LOCAL_USER_ID)
+                        .getCapsuleRecordsForOwner(SeedData.LOCAL_USER_ID)
                 }
             }.onSuccess { capsules ->
                 adapter.submitList(capsules)
