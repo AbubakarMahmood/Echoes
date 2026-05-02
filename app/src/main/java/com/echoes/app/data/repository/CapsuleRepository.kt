@@ -14,6 +14,7 @@ import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.local.model.CapsuleSocialState
 import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.local.model.UnlockType
+import com.echoes.app.domain.CapsuleUnlockRules
 import com.echoes.app.notifications.CapsuleUnlockNotifier
 import com.echoes.app.util.CapsuleImageStorage
 import java.util.UUID
@@ -48,7 +49,7 @@ class CapsuleRepository(context: Context) {
             val now = System.currentTimeMillis()
             val capsuleId = UUID.randomUUID().toString()
             val conditionId = UUID.randomUUID().toString()
-            val hasFutureDateUnlock = unlockAt != null && unlockAt > now
+            val hasFutureDateUnlock = CapsuleUnlockRules.isFutureTimeUnlock(unlockAt, now)
             val hasLocationUnlock = locationUnlockTarget != null
             val unlockType = when {
                 hasLocationUnlock -> UnlockType.LOCATION
@@ -155,7 +156,7 @@ class CapsuleRepository(context: Context) {
                 distanceResults
             )
             val distanceMeters = distanceResults.first()
-            val isWithinRange = distanceMeters <= radiusMeters
+            val isWithinRange = CapsuleUnlockRules.isLocationWithinRadius(distanceMeters, radiusMeters)
             if (!isWithinRange) {
                 return@withContext LocationUnlockCheckResult(
                     record = record,
@@ -209,6 +210,7 @@ class CapsuleRepository(context: Context) {
                 updatedAt = System.currentTimeMillis()
             )
             database.capsuleDao().upsertCapsule(updatedCapsule)
+            refreshTimeUnlockNotification(updatedCapsule)
             updatedCapsule
         }
     }
@@ -293,7 +295,7 @@ class CapsuleRepository(context: Context) {
         }
 
         val now = System.currentTimeMillis()
-        val shouldBeLocked = unlockCondition.unlockAt > now
+        val shouldBeLocked = CapsuleUnlockRules.isFutureTimeUnlock(unlockCondition.unlockAt, now)
         val hasCorrectSatisfiedState = if (shouldBeLocked) {
             unlockCondition.satisfiedAt == null
         } else {
@@ -307,7 +309,11 @@ class CapsuleRepository(context: Context) {
             isLocked = shouldBeLocked
         )
         val updatedCondition = unlockCondition.copy(
-            satisfiedAt = if (shouldBeLocked) null else unlockCondition.satisfiedAt ?: now
+            satisfiedAt = CapsuleUnlockRules.resolvedDateSatisfiedAt(
+                unlockAt = unlockCondition.unlockAt,
+                now = now,
+                currentSatisfiedAt = unlockCondition.satisfiedAt
+            )
         )
 
         database.capsuleDao().upsertCapsule(updatedCapsule)
@@ -316,6 +322,26 @@ class CapsuleRepository(context: Context) {
         return record.copy(
             capsule = updatedCapsule,
             unlockCondition = updatedCondition
+        )
+    }
+
+    private suspend fun refreshTimeUnlockNotification(capsule: CapsuleEntity) {
+        val unlockCondition = database.unlockConditionDao()
+            .getUnlockConditionForCapsule(capsule.capsuleId)
+            ?: return
+        val unlockAt = unlockCondition.unlockAt ?: return
+        if (
+            unlockCondition.conditionType != UnlockType.DATE ||
+            !CapsuleUnlockRules.isFutureTimeUnlock(unlockAt, capsule.updatedAt)
+        ) {
+            return
+        }
+
+        CapsuleUnlockNotifier.scheduleUnlockNotification(
+            context = appContext,
+            capsuleId = capsule.capsuleId,
+            title = capsule.title,
+            unlockAt = unlockAt
         )
     }
 }
