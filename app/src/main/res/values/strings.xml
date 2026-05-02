@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 16 checkpoint</string>
-    <string name="welcome_title">Unlocks can now nudge you back.</string>
-    <string name="welcome_subtitle">Future time capsules can schedule a local unlock notification, while validation and accessibility labels make the core screens safer to use.</string>
+    <string name="welcome_kicker">Day 18 checkpoint</string>
+    <string name="welcome_title">Echoes is submission-shaped now.</string>
+    <string name="welcome_subtitle">The core app is local-first, tested, and ready for final device and Firebase proof once project credentials are plugged in.</string>
     <string name="day_one_heading">What works today</string>
     <string name="day_one_body">The app now moves through auth, create, archive, discovery, detail, Firestore sync, favourites, comments, consent-based location unlock, and local time-unlock notifications while keeping Room as the local base.</string>
+    <string name="final_readiness_title">Final readiness snapshot</string>
+    <string name="final_readiness_local_title">Local base: ready</string>
+    <string name="final_readiness_local_body">Room remains the source of truth for capsules, images, unlock metadata, favourites, and comments.</string>
+    <string name="final_readiness_cloud_title">Cloud mirror: credential-gated</string>
+    <string name="final_readiness_cloud_body">Firestore sync is wired, but real cloud proof needs app/google-services.json plus a Firebase-signed-in user.</string>
+    <string name="final_readiness_device_title">Runtime proof: device-gated</string>
+    <string name="final_readiness_device_body">Location, camera, image picker, and notifications need an attached phone or emulator for screenshots.</string>
+    <string name="final_readiness_tests_title">Tests: passing</string>
+    <string name="final_readiness_tests_body">Core validation and unlock rules have fast JVM tests, and the debug APK builds successfully.</string>
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
     <string name="view_discovery_button">Browse discovery</string>
