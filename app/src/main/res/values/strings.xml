@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 8 checkpoint</string>
-    <string name="welcome_title">The capsule flows now run through MVVM.</string>
-    <string name="welcome_subtitle">Create, archive, and detail screens now render ViewModel state while repository code handles Room and local image work.</string>
+    <string name="welcome_kicker">Day 9 checkpoint</string>
+    <string name="welcome_title">Capsules can now wait for a future time.</string>
+    <string name="welcome_subtitle">Create can add a future unlock date, Room stores it as an unlock condition, and archive/detail show whether the capsule is still locked.</string>
     <string name="day_one_heading">What works today</string>
-    <string name="day_one_body">The same local text and image capsule features still work, but the UI layer is now thinner and the data operations live behind a repository.</string>
+    <string name="day_one_body">The local text and image flows still work through MVVM, and future-dated capsules are visibly locked until their unlock time passes.</string>
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
     <string name="create_capsule_screen_label">Create Capsule</string>
     <string name="create_capsule_kicker">Text capsule</string>
     <string name="create_capsule_title">Write the story you want to seal.</string>
-    <string name="create_capsule_subtitle">This version is still local-first, but it can now attach one image to the capsule before you save it.</string>
+    <string name="create_capsule_subtitle">This version is still local-first, but it can now attach one image and optionally lock the capsule until a future date and time.</string>
     <string name="title_input_label">Capsule title</string>
     <string name="story_input_label">Story text</string>
     <string name="create_capsule_hint">Basic validation is enabled now: title must be at least 3 characters and story text at least 10 characters.</string>
@@ -28,6 +28,13 @@
     <string name="image_captured_message">Photo captured and attached.</string>
     <string name="image_import_failed_message">Could not import that image. Try a different file.</string>
     <string name="image_capture_failed_message">Could not capture an image right now.</string>
+    <string name="time_unlock_title">Optional time unlock</string>
+    <string name="time_unlock_subtitle">Leave this open now, or pick a future date and time to lock the capsule until then.</string>
+    <string name="time_unlock_open_now">Unlock timing: open immediately</string>
+    <string name="time_unlock_selected">Unlock timing: locked until %1$s</string>
+    <string name="choose_unlock_time_button">Choose unlock date and time</string>
+    <string name="clear_unlock_time_button">Clear time unlock</string>
+    <string name="time_unlock_must_be_future">Choose a future date and time for a time-locked capsule.</string>
     <string name="create_metadata_title">Metadata that will be stored</string>
     <string name="create_metadata_owner_value">Owner: %1$s (%2$s)</string>
     <string name="create_metadata_media_value">Media type: %1$s</string>
@@ -92,4 +99,6 @@
     <string name="unlock_type_date">Future date</string>
     <string name="unlock_type_location">Campus location</string>
     <string name="unlock_type_event">University event</string>
+    <string name="unlock_schedule_locked_until">Locked until %1$s</string>
+    <string name="unlock_schedule_unlocked_at">Unlocked after %1$s</string>
 </resources>

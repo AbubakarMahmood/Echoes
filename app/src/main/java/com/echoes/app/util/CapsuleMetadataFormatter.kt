@@ -29,6 +29,15 @@ object CapsuleMetadataFormatter {
         )
     }
 
+    fun unlockScheduleLabel(context: Context, metadata: CapsuleMetadata): String? {
+        if (metadata.unlockType != UnlockType.DATE || metadata.unlockAt == null) return null
+
+        return context.getString(
+            if (metadata.isLocked) R.string.unlock_schedule_locked_until else R.string.unlock_schedule_unlocked_at,
+            DateFormatters.formatTimestamp(metadata.unlockAt)
+        )
+    }
+
     fun mediaTypeLabel(context: Context, mediaType: CapsuleMediaType): String {
         val labelRes = when (mediaType) {
             CapsuleMediaType.TEXT -> R.string.media_type_text_only

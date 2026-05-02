@@ -24,11 +24,19 @@ class CapsuleRepository(context: Context) {
     private val appContext = context.applicationContext
     private val database = DatabaseProvider.getDatabase(appContext)
 
-    suspend fun createCapsule(title: String, body: String, imagePath: String?) {
+    suspend fun createCapsule(
+        title: String,
+        body: String,
+        imagePath: String?,
+        unlockAt: Long?
+    ) {
         withContext(Dispatchers.IO) {
             val now = System.currentTimeMillis()
             val capsuleId = UUID.randomUUID().toString()
             val conditionId = UUID.randomUUID().toString()
+            val hasFutureDateUnlock = unlockAt != null && unlockAt > now
+            val unlockType = if (hasFutureDateUnlock) UnlockType.DATE else UnlockType.NONE
+            val storedUnlockAt = if (hasFutureDateUnlock) unlockAt else null
 
             val capsule = CapsuleEntity(
                 capsuleId = capsuleId,
@@ -37,8 +45,8 @@ class CapsuleRepository(context: Context) {
                 storyText = body,
                 mediaType = if (imagePath.isNullOrBlank()) CapsuleMediaType.TEXT else CapsuleMediaType.IMAGE,
                 mediaLocalPath = imagePath,
-                unlockType = UnlockType.NONE,
-                isLocked = false,
+                unlockType = unlockType,
+                isLocked = hasFutureDateUnlock,
                 isPublic = false,
                 createdAt = now,
                 updatedAt = now
@@ -47,7 +55,8 @@ class CapsuleRepository(context: Context) {
             val unlockCondition = UnlockConditionEntity(
                 conditionId = conditionId,
                 capsuleId = capsuleId,
-                conditionType = UnlockType.NONE
+                conditionType = unlockType,
+                unlockAt = storedUnlockAt
             )
 
             val existingUser = database.userDao().getUserById(SeedData.LOCAL_USER_ID)
@@ -59,13 +68,15 @@ class CapsuleRepository(context: Context) {
 
     suspend fun getArchiveRecords(): List<CapsuleRecord> {
         return withContext(Dispatchers.IO) {
-            database.capsuleDao().getCapsuleRecordsForOwner(SeedData.LOCAL_USER_ID)
+            database.capsuleDao()
+                .getCapsuleRecordsForOwner(SeedData.LOCAL_USER_ID)
+                .map { resolveTimeUnlockState(it) }
         }
     }
 
     suspend fun getCapsuleRecord(capsuleId: String): CapsuleRecord? {
         return withContext(Dispatchers.IO) {
-            database.capsuleDao().getCapsuleRecord(capsuleId)
+            database.capsuleDao().getCapsuleRecord(capsuleId)?.let { resolveTimeUnlockState(it) }
         }
     }
 
@@ -106,5 +117,38 @@ class CapsuleRepository(context: Context) {
 
     fun deleteStoredImage(path: String?) {
         CapsuleImageStorage.deleteStoredImage(path)
+    }
+
+    private suspend fun resolveTimeUnlockState(record: CapsuleRecord): CapsuleRecord {
+        val unlockCondition = record.unlockCondition ?: return record
+        if (unlockCondition.conditionType != UnlockType.DATE || unlockCondition.unlockAt == null) {
+            return record
+        }
+
+        val now = System.currentTimeMillis()
+        val shouldBeLocked = unlockCondition.unlockAt > now
+        val hasCorrectSatisfiedState = if (shouldBeLocked) {
+            unlockCondition.satisfiedAt == null
+        } else {
+            unlockCondition.satisfiedAt != null
+        }
+        if (record.capsule.isLocked == shouldBeLocked && hasCorrectSatisfiedState) {
+            return record
+        }
+
+        val updatedCapsule = record.capsule.copy(
+            isLocked = shouldBeLocked
+        )
+        val updatedCondition = unlockCondition.copy(
+            satisfiedAt = if (shouldBeLocked) null else unlockCondition.satisfiedAt ?: now
+        )
+
+        database.capsuleDao().upsertCapsule(updatedCapsule)
+        database.unlockConditionDao().upsertUnlockCondition(updatedCondition)
+
+        return record.copy(
+            capsule = updatedCapsule,
+            unlockCondition = updatedCondition
+        )
     }
 }

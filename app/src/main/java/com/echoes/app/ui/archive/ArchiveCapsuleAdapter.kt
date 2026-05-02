@@ -42,6 +42,7 @@ class ArchiveCapsuleAdapter(
         private val titleText: TextView = itemView.findViewById(R.id.archiveItemTitle)
         private val statusText: TextView = itemView.findViewById(R.id.archiveItemStatus)
         private val metadataText: TextView = itemView.findViewById(R.id.archiveItemMetadata)
+        private val unlockScheduleText: TextView = itemView.findViewById(R.id.archiveItemUnlockSchedule)
         private val timestampText: TextView = itemView.findViewById(R.id.archiveItemTimestamp)
         private val previewText: TextView = itemView.findViewById(R.id.archiveItemPreview)
 
@@ -59,6 +60,9 @@ class ArchiveCapsuleAdapter(
                 CapsuleMetadataFormatter.mediaTypeLabel(itemView.context, capsule.mediaType),
                 CapsuleMetadataFormatter.unlockTypeLabel(itemView.context, metadata.unlockType)
             )
+            val unlockSchedule = CapsuleMetadataFormatter.unlockScheduleLabel(itemView.context, metadata)
+            unlockScheduleText.visibility = if (unlockSchedule == null) View.GONE else View.VISIBLE
+            unlockScheduleText.text = unlockSchedule
             timestampText.text = itemView.context.getString(
                 if (metadata.hasBeenEdited) R.string.archive_item_updated_at else R.string.archive_item_created_at,
                 DateFormatters.formatTimestamp(if (metadata.hasBeenEdited) metadata.updatedAt else metadata.createdAt)

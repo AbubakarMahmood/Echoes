@@ -38,6 +38,7 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var metadataUpdatedAtText: TextView
     private lateinit var metadataMediaTypeText: TextView
     private lateinit var metadataUnlockTypeText: TextView
+    private lateinit var metadataUnlockScheduleText: TextView
     private lateinit var metadataLockStatusText: TextView
     private lateinit var imageCard: View
     private lateinit var imagePreview: ImageView
@@ -73,6 +74,7 @@ class CapsuleDetailFragment : Fragment() {
         metadataUpdatedAtText = view.findViewById(R.id.detailUpdatedAtText)
         metadataMediaTypeText = view.findViewById(R.id.detailMediaTypeText)
         metadataUnlockTypeText = view.findViewById(R.id.detailUnlockTypeText)
+        metadataUnlockScheduleText = view.findViewById(R.id.detailUnlockScheduleText)
         metadataLockStatusText = view.findViewById(R.id.detailLockStatusText)
         imageCard = view.findViewById(R.id.detailImageCard)
         imagePreview = view.findViewById(R.id.detailImagePreview)
@@ -170,6 +172,9 @@ class CapsuleDetailFragment : Fragment() {
             R.string.detail_unlock_type_value,
             CapsuleMetadataFormatter.unlockTypeLabel(requireContext(), metadata.unlockType)
         )
+        val unlockSchedule = CapsuleMetadataFormatter.unlockScheduleLabel(requireContext(), metadata)
+        metadataUnlockScheduleText.visibility = if (unlockSchedule == null) View.GONE else View.VISIBLE
+        metadataUnlockScheduleText.text = unlockSchedule
         metadataLockStatusText.text = getString(
             R.string.detail_lock_status_value,
             CapsuleMetadataFormatter.lockStatusLabel(requireContext(), metadata)

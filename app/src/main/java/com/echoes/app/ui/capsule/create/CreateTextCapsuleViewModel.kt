@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 data class CreateTextCapsuleUiState(
     val isSaving: Boolean = false,
     val selectedImagePath: String? = null,
+    val selectedUnlockAt: Long? = null,
     @StringRes val titleErrorResId: Int? = null,
     @StringRes val bodyErrorResId: Int? = null
 )
@@ -93,6 +94,21 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
         _uiState.update { it.copy(selectedImagePath = null) }
     }
 
+    fun setDateUnlock(unlockAt: Long) {
+        viewModelScope.launch {
+            if (unlockAt <= System.currentTimeMillis()) {
+                _events.emit(CreateTextCapsuleEvent.ShowMessage(R.string.time_unlock_must_be_future))
+                return@launch
+            }
+
+            _uiState.update { it.copy(selectedUnlockAt = unlockAt) }
+        }
+    }
+
+    fun clearDateUnlock() {
+        _uiState.update { it.copy(selectedUnlockAt = null) }
+    }
+
     fun cleanupPendingAttachments() {
         if (hasSavedCapsule) return
 
@@ -118,11 +134,12 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
         if (titleError != null || bodyError != null) return
 
         val imagePath = _uiState.value.selectedImagePath
+        val unlockAt = _uiState.value.selectedUnlockAt
         _uiState.update { it.copy(isSaving = true) }
 
         viewModelScope.launch {
             runCatching {
-                repository.createCapsule(title, body, imagePath)
+                repository.createCapsule(title, body, imagePath, unlockAt)
             }.onSuccess {
                 hasSavedCapsule = true
                 _uiState.update { it.copy(isSaving = false) }

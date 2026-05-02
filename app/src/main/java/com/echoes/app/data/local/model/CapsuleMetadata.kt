@@ -6,7 +6,9 @@ data class CapsuleMetadata(
     val createdAt: Long,
     val updatedAt: Long,
     val unlockType: UnlockType,
-    val isLocked: Boolean
+    val isLocked: Boolean,
+    val unlockAt: Long? = null,
+    val satisfiedAt: Long? = null
 ) {
     val hasBeenEdited: Boolean
         get() = updatedAt > createdAt
