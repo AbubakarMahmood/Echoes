@@ -5,9 +5,12 @@ import android.net.Uri
 import com.echoes.app.data.local.DatabaseProvider
 import com.echoes.app.data.local.SeedData
 import com.echoes.app.data.local.entity.CapsuleEntity
+import com.echoes.app.data.local.entity.CommentEntity
+import com.echoes.app.data.local.entity.FavoriteEntity
 import com.echoes.app.data.local.entity.UnlockConditionEntity
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
+import com.echoes.app.data.local.model.CapsuleSocialState
 import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.util.CapsuleImageStorage
 import java.util.UUID
@@ -80,6 +83,25 @@ class CapsuleRepository(context: Context) {
         }
     }
 
+    suspend fun getDiscoveryRecords(): List<CapsuleRecord> {
+        return withContext(Dispatchers.IO) {
+            database.capsuleDao()
+                .getAllCapsuleRecords()
+                .map { resolveTimeUnlockState(it) }
+                .filter { !it.metadata.isLocked }
+        }
+    }
+
+    suspend fun getCapsuleSocialState(capsuleId: String): CapsuleSocialState {
+        return withContext(Dispatchers.IO) {
+            CapsuleSocialState(
+                isFavorite = database.favoriteDao()
+                    .favoriteCount(capsuleId, SeedData.LOCAL_USER_ID) > 0,
+                comments = database.commentDao().getCommentsForCapsule(capsuleId)
+            )
+        }
+    }
+
     suspend fun updateCapsule(capsule: CapsuleEntity, title: String, body: String): CapsuleEntity {
         return withContext(Dispatchers.IO) {
             val updatedCapsule = capsule.copy(
@@ -94,10 +116,55 @@ class CapsuleRepository(context: Context) {
 
     suspend fun deleteCapsule(capsule: CapsuleEntity) {
         withContext(Dispatchers.IO) {
+            database.favoriteDao().deleteFavoritesForCapsule(capsule.capsuleId)
+            database.commentDao().deleteCommentsForCapsule(capsule.capsuleId)
             database.capsuleDao().deleteCapsule(capsule)
             if (capsule.mediaType == CapsuleMediaType.IMAGE) {
                 CapsuleImageStorage.deleteStoredImage(capsule.mediaLocalPath)
             }
+        }
+    }
+
+    suspend fun setFavorite(capsuleId: String, shouldFavorite: Boolean): CapsuleSocialState {
+        return withContext(Dispatchers.IO) {
+            if (shouldFavorite) {
+                database.favoriteDao().upsertFavorite(
+                    FavoriteEntity(
+                        capsuleId = capsuleId,
+                        userId = SeedData.LOCAL_USER_ID,
+                        createdAt = System.currentTimeMillis()
+                    )
+                )
+            } else {
+                database.favoriteDao().deleteFavorite(capsuleId, SeedData.LOCAL_USER_ID)
+            }
+
+            CapsuleSocialState(
+                isFavorite = database.favoriteDao()
+                    .favoriteCount(capsuleId, SeedData.LOCAL_USER_ID) > 0,
+                comments = database.commentDao().getCommentsForCapsule(capsuleId)
+            )
+        }
+    }
+
+    suspend fun addComment(capsuleId: String, body: String): CapsuleSocialState {
+        return withContext(Dispatchers.IO) {
+            database.commentDao().upsertComment(
+                CommentEntity(
+                    commentId = UUID.randomUUID().toString(),
+                    capsuleId = capsuleId,
+                    userId = SeedData.LOCAL_USER_ID,
+                    authorDisplayName = SeedData.LOCAL_USER_NAME,
+                    body = body,
+                    createdAt = System.currentTimeMillis()
+                )
+            )
+
+            CapsuleSocialState(
+                isFavorite = database.favoriteDao()
+                    .favoriteCount(capsuleId, SeedData.LOCAL_USER_ID) > 0,
+                comments = database.commentDao().getCommentsForCapsule(capsuleId)
+            )
         }
     }
 

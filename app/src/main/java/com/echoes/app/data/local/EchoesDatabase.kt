@@ -5,9 +5,13 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.echoes.app.data.local.converter.DatabaseConverters
 import com.echoes.app.data.local.dao.CapsuleDao
+import com.echoes.app.data.local.dao.CommentDao
+import com.echoes.app.data.local.dao.FavoriteDao
 import com.echoes.app.data.local.dao.UnlockConditionDao
 import com.echoes.app.data.local.dao.UserDao
 import com.echoes.app.data.local.entity.CapsuleEntity
+import com.echoes.app.data.local.entity.CommentEntity
+import com.echoes.app.data.local.entity.FavoriteEntity
 import com.echoes.app.data.local.entity.UnlockConditionEntity
 import com.echoes.app.data.local.entity.UserEntity
 
@@ -15,9 +19,11 @@ import com.echoes.app.data.local.entity.UserEntity
     entities = [
         UserEntity::class,
         CapsuleEntity::class,
-        UnlockConditionEntity::class
+        UnlockConditionEntity::class,
+        FavoriteEntity::class,
+        CommentEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)
@@ -28,6 +34,10 @@ abstract class EchoesDatabase : RoomDatabase() {
     abstract fun capsuleDao(): CapsuleDao
 
     abstract fun unlockConditionDao(): UnlockConditionDao
+
+    abstract fun favoriteDao(): FavoriteDao
+
+    abstract fun commentDao(): CommentDao
 
     companion object {
         const val DATABASE_NAME = "echoes.db"

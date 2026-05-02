@@ -25,6 +25,9 @@
         <action
             android:id="@+id/action_welcomeFragment_to_archiveFragment"
             app:destination="@id/archiveFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_discoveryFragment"
+            app:destination="@id/discoveryFragment" />
     </fragment>
 
     <fragment
@@ -41,6 +44,15 @@
             app:destination="@id/createTextCapsuleFragment" />
         <action
             android:id="@+id/action_archiveFragment_to_capsuleDetailFragment"
+            app:destination="@id/capsuleDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/discoveryFragment"
+        android:name="com.echoes.app.ui.discovery.DiscoveryFragment"
+        android:label="@string/discovery_screen_label">
+        <action
+            android:id="@+id/action_discoveryFragment_to_capsuleDetailFragment"
             app:destination="@id/capsuleDetailFragment" />
     </fragment>
 

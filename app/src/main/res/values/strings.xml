@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 12 checkpoint</string>
-    <string name="welcome_title">Room stays first, Firestore becomes the mirror.</string>
-    <string name="welcome_subtitle">The archive can now push local capsule records to a signed-in user path in Firestore when Firebase config is present.</string>
+    <string name="welcome_kicker">Day 14 checkpoint</string>
+    <string name="welcome_title">Discovery and social actions are now in the flow.</string>
+    <string name="welcome_subtitle">Unlocked capsules have a browseable discovery path, and capsule detail now supports local favourites and comments.</string>
     <string name="day_one_heading">What works today</string>
-    <string name="day_one_body">The local text, image, MVVM, time-unlock, archive browsing, and auth entry flows still work while cloud sync remains an explicit archive action.</string>
+    <string name="day_one_body">The app now moves coherently through auth, create, archive, discovery, detail, Firestore sync, favourites, and comments while keeping Room as the local base.</string>
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
+    <string name="view_discovery_button">Browse discovery</string>
     <string name="auth_screen_label">Sign in</string>
     <string name="auth_kicker">Firebase auth</string>
     <string name="auth_title">Sign in before opening your archive.</string>
@@ -71,6 +72,7 @@
     <string name="capsule_saved_message">Text capsule saved to Room.</string>
     <string name="capsule_save_failed_message">Could not save the capsule. Try again.</string>
     <string name="archive_screen_label">My Archive</string>
+    <string name="discovery_screen_label">Discovery</string>
     <string name="archive_kicker">Personal archive</string>
     <string name="archive_title">Saved capsules</string>
     <string name="archive_subtitle">This list is loaded straight from Room, with optional Firestore mirroring when Firebase auth and config are available.</string>
@@ -102,6 +104,12 @@
     <string name="archive_sort_label">Sort order</string>
     <string name="archive_sort_newest">Newest</string>
     <string name="archive_sort_oldest">Oldest</string>
+    <string name="discovery_kicker">Discovery</string>
+    <string name="discovery_title">Unlocked capsules</string>
+    <string name="discovery_subtitle">Browse capsules that are open now. This is local-first today and ready to grow into shared Firestore discovery later.</string>
+    <string name="discovery_empty_title">No unlocked capsules yet.</string>
+    <string name="discovery_empty_body">Create an open capsule, or wait for a time-locked capsule to unlock, and it will appear here.</string>
+    <string name="discovery_load_failed_message">Could not load discovery capsules.</string>
     <string name="archive_item_created_at">Created %1$s</string>
     <string name="archive_item_updated_at">Updated %1$s</string>
     <string name="archive_item_metadata_summary">%1$s • %2$s • %3$s</string>
@@ -127,6 +135,23 @@
     <string name="detail_image_content_description">Saved capsule image</string>
     <string name="detail_image_missing">The image reference exists, but the file could not be opened.</string>
     <string name="detail_edit_hint">Edits stay local for now. Saving updates the capsule metadata and the archive will reflect the change when you return.</string>
+    <string name="social_title">Favourites and comments</string>
+    <string name="social_locked_capsule_hint">Social actions are available after this capsule unlocks.</string>
+    <string name="social_locked_capsule_message">Unlock this capsule before favouriting or commenting.</string>
+    <string name="favorite_add_button">Add to favourites</string>
+    <string name="favorite_remove_button">Remove from favourites</string>
+    <string name="favorite_added_message">Capsule added to favourites.</string>
+    <string name="favorite_removed_message">Capsule removed from favourites.</string>
+    <string name="favorite_update_failed_message">Could not update favourite state.</string>
+    <string name="comments_title">Comments</string>
+    <string name="comments_empty_message">No comments yet.</string>
+    <string name="comment_input_label">Add a comment</string>
+    <string name="comment_add_button">Post comment</string>
+    <string name="comment_saving_button">Posting...</string>
+    <string name="comment_body_error">Comment must be at least 2 characters.</string>
+    <string name="comment_added_message">Comment added.</string>
+    <string name="comment_add_failed_message">Could not add that comment.</string>
+    <string name="comment_item_value">%1$s • %2$s\n%3$s</string>
     <string name="capsule_detail_missing_message">That capsule could not be found.</string>
     <string name="capsule_detail_load_failed_message">Could not load capsule details.</string>
     <string name="capsule_updated_message">Capsule updated locally.</string>
