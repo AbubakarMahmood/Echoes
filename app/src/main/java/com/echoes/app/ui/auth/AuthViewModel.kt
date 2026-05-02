@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.echoes.app.R
 import com.echoes.app.data.auth.AuthRepository
 import com.echoes.app.data.auth.MissingFirebaseConfigurationException
+import com.echoes.app.domain.CapsuleInputRules
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -134,7 +135,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun validatePassword(password: String): Int? {
-        return if (password.length < 6 || password.length > 128) {
+        return if (!CapsuleInputRules.isPasswordLengthValid(password)) {
             R.string.auth_password_error
         } else {
             null
@@ -142,7 +143,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun validateDisplayName(displayName: String): Int? {
-        return if (displayName.length < 2 || displayName.length > 40) {
+        return if (CapsuleInputRules.validateDisplayName(displayName) != null) {
             R.string.auth_display_name_error
         } else {
             null

@@ -70,5 +70,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    testImplementation(kotlin("test-junit"))
     ksp("androidx.room:room-compiler:2.7.0")
 }

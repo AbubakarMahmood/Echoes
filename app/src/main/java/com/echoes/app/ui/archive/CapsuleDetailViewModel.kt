@@ -8,6 +8,8 @@ import com.echoes.app.R
 import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.local.model.CapsuleSocialState
 import com.echoes.app.data.repository.CapsuleRepository
+import com.echoes.app.domain.CapsuleInputError
+import com.echoes.app.domain.CapsuleInputRules
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -136,11 +138,7 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
         if (_uiState.value.isUpdatingSocial) return
 
         val trimmedBody = body.trim()
-        val commentError = when {
-            trimmedBody.length < COMMENT_MIN_LENGTH -> R.string.comment_body_error
-            trimmedBody.length > COMMENT_MAX_LENGTH -> R.string.comment_body_too_long_error
-            else -> null
-        }
+        val commentError = CapsuleInputRules.validateComment(trimmedBody).toCommentErrorResId()
         _uiState.update { it.copy(commentErrorResId = commentError) }
         if (commentError != null) return
 
@@ -205,16 +203,8 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
 
         val trimmedTitle = title.trim()
         val trimmedBody = body.trim()
-        val titleError = when {
-            trimmedTitle.length < TITLE_MIN_LENGTH -> R.string.error_title_too_short
-            trimmedTitle.length > TITLE_MAX_LENGTH -> R.string.error_title_too_long
-            else -> null
-        }
-        val bodyError = when {
-            trimmedBody.length < BODY_MIN_LENGTH -> R.string.error_story_too_short
-            trimmedBody.length > BODY_MAX_LENGTH -> R.string.error_story_too_long
-            else -> null
-        }
+        val titleError = CapsuleInputRules.validateTitle(trimmedTitle).toTitleErrorResId()
+        val bodyError = CapsuleInputRules.validateStory(trimmedBody).toStoryErrorResId()
 
         _uiState.update {
             it.copy(
@@ -266,12 +256,28 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    companion object {
-        private const val TITLE_MIN_LENGTH = 3
-        private const val TITLE_MAX_LENGTH = 80
-        private const val BODY_MIN_LENGTH = 10
-        private const val BODY_MAX_LENGTH = 2000
-        private const val COMMENT_MIN_LENGTH = 2
-        private const val COMMENT_MAX_LENGTH = 300
+}
+
+private fun CapsuleInputError?.toTitleErrorResId(): Int? {
+    return when (this) {
+        CapsuleInputError.TOO_SHORT -> R.string.error_title_too_short
+        CapsuleInputError.TOO_LONG -> R.string.error_title_too_long
+        null -> null
+    }
+}
+
+private fun CapsuleInputError?.toStoryErrorResId(): Int? {
+    return when (this) {
+        CapsuleInputError.TOO_SHORT -> R.string.error_story_too_short
+        CapsuleInputError.TOO_LONG -> R.string.error_story_too_long
+        null -> null
+    }
+}
+
+private fun CapsuleInputError?.toCommentErrorResId(): Int? {
+    return when (this) {
+        CapsuleInputError.TOO_SHORT -> R.string.comment_body_error
+        CapsuleInputError.TOO_LONG -> R.string.comment_body_too_long_error
+        null -> null
     }
 }

@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.echoes.app.R
 import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.repository.CapsuleRepository
+import com.echoes.app.domain.CapsuleInputError
+import com.echoes.app.domain.CapsuleInputRules
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -171,16 +173,8 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
     fun validateDraft(title: String, body: String): Boolean {
         val trimmedTitle = title.trim()
         val trimmedBody = body.trim()
-        val titleError = when {
-            trimmedTitle.length < TITLE_MIN_LENGTH -> R.string.error_title_too_short
-            trimmedTitle.length > TITLE_MAX_LENGTH -> R.string.error_title_too_long
-            else -> null
-        }
-        val bodyError = when {
-            trimmedBody.length < BODY_MIN_LENGTH -> R.string.error_story_too_short
-            trimmedBody.length > BODY_MAX_LENGTH -> R.string.error_story_too_long
-            else -> null
-        }
+        val titleError = CapsuleInputRules.validateTitle(trimmedTitle).toTitleErrorResId()
+        val bodyError = CapsuleInputRules.validateStory(trimmedBody).toStoryErrorResId()
 
         _uiState.update {
             it.copy(
@@ -207,10 +201,22 @@ class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(ap
     }
 
     companion object {
-        private const val TITLE_MIN_LENGTH = 3
-        private const val TITLE_MAX_LENGTH = 80
-        private const val BODY_MIN_LENGTH = 10
-        private const val BODY_MAX_LENGTH = 2000
         private const val DEFAULT_LOCATION_UNLOCK_RADIUS_METERS = 150
+    }
+}
+
+private fun CapsuleInputError?.toTitleErrorResId(): Int? {
+    return when (this) {
+        CapsuleInputError.TOO_SHORT -> R.string.error_title_too_short
+        CapsuleInputError.TOO_LONG -> R.string.error_title_too_long
+        null -> null
+    }
+}
+
+private fun CapsuleInputError?.toStoryErrorResId(): Int? {
+    return when (this) {
+        CapsuleInputError.TOO_SHORT -> R.string.error_story_too_short
+        CapsuleInputError.TOO_LONG -> R.string.error_story_too_long
+        null -> null
     }
 }
