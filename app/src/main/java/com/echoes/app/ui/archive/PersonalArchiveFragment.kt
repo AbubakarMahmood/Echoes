@@ -8,19 +8,20 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.echoes.app.R
-import com.echoes.app.data.local.DatabaseProvider
-import com.echoes.app.data.local.SeedData
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class PersonalArchiveFragment : Fragment() {
+
+    private val viewModel: PersonalArchiveViewModel by viewModels()
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyStateTitle: TextView
@@ -37,6 +38,17 @@ class PersonalArchiveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        bindViews(view)
+        bindActions()
+        collectViewModel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadArchive()
+    }
+
+    private fun bindViews(view: View) {
         recyclerView = view.findViewById(R.id.archiveRecyclerView)
         emptyStateTitle = view.findViewById(R.id.emptyStateTitle)
         emptyStateBody = view.findViewById(R.id.emptyStateBody)
@@ -51,34 +63,45 @@ class PersonalArchiveFragment : Fragment() {
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
+    }
 
+    private fun bindActions() {
         emptyStateButton.setOnClickListener {
             findNavController().navigate(R.id.action_archiveFragment_to_createTextCapsuleFragment)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        loadArchive()
+    private fun collectViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        renderState(state)
+                    }
+                }
+
+                launch {
+                    viewModel.events.collect { event ->
+                        handleEvent(event)
+                    }
+                }
+            }
+        }
     }
 
-    private fun loadArchive() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    DatabaseProvider.getDatabase(requireContext())
-                        .capsuleDao()
-                        .getCapsuleRecordsForOwner(SeedData.LOCAL_USER_ID)
-                }
-            }.onSuccess { capsules ->
-                adapter.submitList(capsules)
-                val hasCapsules = capsules.isNotEmpty()
-                recyclerView.visibility = if (hasCapsules) View.VISIBLE else View.GONE
-                emptyStateTitle.visibility = if (hasCapsules) View.GONE else View.VISIBLE
-                emptyStateBody.visibility = if (hasCapsules) View.GONE else View.VISIBLE
-                emptyStateButton.visibility = if (hasCapsules) View.GONE else View.VISIBLE
-            }.onFailure {
-                Snackbar.make(requireView(), R.string.archive_load_failed_message, Snackbar.LENGTH_LONG).show()
+    private fun renderState(state: PersonalArchiveUiState) {
+        adapter.submitList(state.capsules)
+        val hasCapsules = state.capsules.isNotEmpty()
+        recyclerView.visibility = if (hasCapsules) View.VISIBLE else View.GONE
+        emptyStateTitle.visibility = if (hasCapsules) View.GONE else View.VISIBLE
+        emptyStateBody.visibility = if (hasCapsules) View.GONE else View.VISIBLE
+        emptyStateButton.visibility = if (hasCapsules) View.GONE else View.VISIBLE
+    }
+
+    private fun handleEvent(event: PersonalArchiveEvent) {
+        when (event) {
+            is PersonalArchiveEvent.ShowMessage -> {
+                Snackbar.make(requireView(), event.messageResId, Snackbar.LENGTH_LONG).show()
             }
         }
     }

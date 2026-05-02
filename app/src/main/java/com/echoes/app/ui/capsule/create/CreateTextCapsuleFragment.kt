@@ -10,13 +10,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.echoes.app.R
-import com.echoes.app.data.local.DatabaseProvider
 import com.echoes.app.data.local.SeedData
-import com.echoes.app.data.local.entity.CapsuleEntity
-import com.echoes.app.data.local.entity.UnlockConditionEntity
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.util.CapsuleImageStorage
@@ -24,25 +24,24 @@ import com.echoes.app.util.CapsuleMetadataFormatter
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import java.util.UUID
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CreateTextCapsuleFragment : Fragment() {
+
+    private val viewModel: CreateTextCapsuleViewModel by viewModels()
 
     private val selectImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
-            importSelectedImage(uri)
+            viewModel.importSelectedImage(uri)
         }
     }
 
     private val captureImageLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
-        handleCameraCaptureResult(success)
+        viewModel.handleCameraCaptureResult(success)
     }
 
     private lateinit var titleLayout: TextInputLayout
@@ -62,9 +61,6 @@ class CreateTextCapsuleFragment : Fragment() {
     private lateinit var metadataUnlockTypeText: TextView
     private lateinit var metadataLockStatusText: TextView
     private lateinit var metadataTimestampText: TextView
-    private var selectedImagePath: String? = null
-    private var pendingCameraImagePath: String? = null
-    private var hasSavedCapsule = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,6 +71,12 @@ class CreateTextCapsuleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        bindViews(view)
+        bindActions()
+        collectViewModel()
+    }
+
+    private fun bindViews(view: View) {
         titleLayout = view.findViewById(R.id.titleLayout)
         bodyLayout = view.findViewById(R.id.bodyLayout)
         titleInput = view.findViewById(R.id.titleInput)
@@ -92,16 +94,18 @@ class CreateTextCapsuleFragment : Fragment() {
         metadataUnlockTypeText = view.findViewById(R.id.createMetadataUnlockTypeText)
         metadataLockStatusText = view.findViewById(R.id.createMetadataLockStatusText)
         metadataTimestampText = view.findViewById(R.id.createMetadataTimestampText)
+    }
 
-        bindMetadataPreview()
-        bindImagePreview()
-
+    private fun bindActions() {
         saveButton.setOnClickListener {
-            saveCapsule()
+            viewModel.saveCapsule(
+                title = titleInput.text?.toString()?.trim().orEmpty(),
+                body = bodyInput.text?.toString()?.trim().orEmpty()
+            )
         }
 
         cancelButton.setOnClickListener {
-            cleanupPendingAttachments()
+            viewModel.cleanupPendingAttachments()
             findNavController().navigateUp()
         }
 
@@ -110,15 +114,51 @@ class CreateTextCapsuleFragment : Fragment() {
         }
 
         captureImageButton.setOnClickListener {
-            launchCameraCapture()
+            viewModel.prepareCameraCapture()
         }
 
         removeImageButton.setOnClickListener {
-            clearSelectedImage()
+            viewModel.clearSelectedImage()
         }
     }
 
-    private fun bindMetadataPreview() {
+    private fun collectViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        renderState(state)
+                    }
+                }
+
+                launch {
+                    viewModel.events.collect { event ->
+                        handleEvent(event)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun renderState(state: CreateTextCapsuleUiState) {
+        titleLayout.error = state.titleErrorResId?.let(::getString)
+        bodyLayout.error = state.bodyErrorResId?.let(::getString)
+        setSavingState(state.isSaving)
+        bindMetadataPreview(state.selectedImagePath)
+        bindImagePreview(state.selectedImagePath)
+    }
+
+    private fun handleEvent(event: CreateTextCapsuleEvent) {
+        when (event) {
+            is CreateTextCapsuleEvent.LaunchCamera -> captureImageLauncher.launch(event.uri)
+            is CreateTextCapsuleEvent.ShowMessage -> {
+                Snackbar.make(requireView(), event.messageResId, Snackbar.LENGTH_SHORT).show()
+            }
+            CreateTextCapsuleEvent.NavigateToArchive -> findNavController().navigate(R.id.archiveFragment)
+        }
+    }
+
+    private fun bindMetadataPreview(selectedImagePath: String?) {
         metadataOwnerText.text = getString(
             R.string.create_metadata_owner_value,
             SeedData.LOCAL_USER_NAME,
@@ -142,8 +182,8 @@ class CreateTextCapsuleFragment : Fragment() {
         metadataTimestampText.text = getString(R.string.create_metadata_timestamps_value)
     }
 
-    private fun bindImagePreview() {
-        val imageUri = CapsuleImageStorage.uriForStoredPath(selectedImagePath)
+    private fun bindImagePreview(selectedImagePath: String?) {
+        val imageUri: Uri? = CapsuleImageStorage.uriForStoredPath(selectedImagePath)
         val hasImage = imageUri != null
 
         imagePreview.setImageURI(null)
@@ -159,146 +199,6 @@ class CreateTextCapsuleFragment : Fragment() {
         )
     }
 
-    private fun launchCameraCapture() {
-        runCatching {
-            val imageFile = CapsuleImageStorage.createCameraImageFile(requireContext())
-            pendingCameraImagePath = imageFile.absolutePath
-            CapsuleImageStorage.createCameraImageUri(requireContext(), imageFile)
-        }.onSuccess { captureUri ->
-            captureImageLauncher.launch(captureUri)
-        }.onFailure {
-            pendingCameraImagePath = null
-            Snackbar.make(requireView(), R.string.image_capture_failed_message, Snackbar.LENGTH_LONG).show()
-        }
-    }
-
-    private fun handleCameraCaptureResult(success: Boolean) {
-        val capturedImagePath = pendingCameraImagePath
-        pendingCameraImagePath = null
-
-        if (!success) {
-            CapsuleImageStorage.deleteStoredImage(capturedImagePath)
-            return
-        }
-
-        if (capturedImagePath.isNullOrBlank()) {
-            Snackbar.make(requireView(), R.string.image_capture_failed_message, Snackbar.LENGTH_LONG).show()
-            return
-        }
-
-        replaceSelectedImage(capturedImagePath)
-        Snackbar.make(requireView(), R.string.image_captured_message, Snackbar.LENGTH_SHORT).show()
-    }
-
-    private fun importSelectedImage(sourceUri: Uri) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    CapsuleImageStorage.importImageFromUri(requireContext(), sourceUri)
-                }
-            }.onSuccess { importedImagePath ->
-                replaceSelectedImage(importedImagePath)
-                Snackbar.make(requireView(), R.string.image_added_message, Snackbar.LENGTH_SHORT).show()
-            }.onFailure {
-                Snackbar.make(requireView(), R.string.image_import_failed_message, Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    private fun replaceSelectedImage(newImagePath: String) {
-        if (selectedImagePath != null && selectedImagePath != newImagePath) {
-            CapsuleImageStorage.deleteStoredImage(selectedImagePath)
-        }
-
-        selectedImagePath = newImagePath
-        bindMetadataPreview()
-        bindImagePreview()
-    }
-
-    private fun clearSelectedImage() {
-        CapsuleImageStorage.deleteStoredImage(selectedImagePath)
-        selectedImagePath = null
-        bindMetadataPreview()
-        bindImagePreview()
-    }
-
-    private fun cleanupPendingAttachments() {
-        if (hasSavedCapsule) return
-
-        CapsuleImageStorage.deleteStoredImage(selectedImagePath)
-        CapsuleImageStorage.deleteStoredImage(pendingCameraImagePath)
-        selectedImagePath = null
-        pendingCameraImagePath = null
-    }
-
-    private fun saveCapsule() {
-        val title = titleInput.text?.toString()?.trim().orEmpty()
-        val body = bodyInput.text?.toString()?.trim().orEmpty()
-
-        var valid = true
-
-        if (title.length < TITLE_MIN_LENGTH) {
-            titleLayout.error = getString(R.string.error_title_too_short)
-            valid = false
-        } else {
-            titleLayout.error = null
-        }
-
-        if (body.length < BODY_MIN_LENGTH) {
-            bodyLayout.error = getString(R.string.error_story_too_short)
-            valid = false
-        } else {
-            bodyLayout.error = null
-        }
-
-        if (!valid) return
-
-        setSavingState(true)
-
-        val now = System.currentTimeMillis()
-        val capsuleId = UUID.randomUUID().toString()
-        val conditionId = UUID.randomUUID().toString()
-
-        val capsule = CapsuleEntity(
-            capsuleId = capsuleId,
-            ownerId = SeedData.LOCAL_USER_ID,
-            title = title,
-            storyText = body,
-            mediaType = if (selectedImagePath.isNullOrBlank()) CapsuleMediaType.TEXT else CapsuleMediaType.IMAGE,
-            mediaLocalPath = selectedImagePath,
-            unlockType = UnlockType.NONE,
-            isLocked = false,
-            isPublic = false,
-            createdAt = now,
-            updatedAt = now
-        )
-
-        val unlockCondition = UnlockConditionEntity(
-            conditionId = conditionId,
-            capsuleId = capsuleId,
-            conditionType = UnlockType.NONE
-        )
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    val database = DatabaseProvider.getDatabase(requireContext())
-                    val existingUser = database.userDao().getUserById(SeedData.LOCAL_USER_ID)
-                    database.userDao().upsertUser(SeedData.localUserForWrite(existingUser, now))
-                    database.capsuleDao().upsertCapsule(capsule)
-                    database.unlockConditionDao().upsertUnlockCondition(unlockCondition)
-                }
-            }.onSuccess {
-                hasSavedCapsule = true
-                setSavingState(false)
-                findNavController().navigate(R.id.archiveFragment)
-            }.onFailure {
-                setSavingState(false)
-                Snackbar.make(requireView(), R.string.capsule_save_failed_message, Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-
     private fun setSavingState(isSaving: Boolean) {
         saveButton.isEnabled = !isSaving
         cancelButton.isEnabled = !isSaving
@@ -308,10 +208,5 @@ class CreateTextCapsuleFragment : Fragment() {
         saveButton.text = getString(
             if (isSaving) R.string.saving_capsule_button else R.string.save_capsule_button
         )
-    }
-
-    companion object {
-        private const val TITLE_MIN_LENGTH = 3
-        private const val BODY_MIN_LENGTH = 10
     }
 }
