@@ -84,6 +84,8 @@
                         android:layout_height="wrap_content"
                         android:autofillHints="emailAddress"
                         android:inputType="textEmailAddress"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:singleLine="true" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -103,6 +105,8 @@
                         android:layout_height="wrap_content"
                         android:autofillHints="password"
                         android:inputType="textPassword"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:singleLine="true" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -121,6 +125,8 @@
                         android:layout_height="wrap_content"
                         android:autofillHints="name"
                         android:inputType="textPersonName|textCapWords"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:singleLine="true" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -130,6 +136,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
                     android:text="@string/auth_sign_in_button"
+                    android:textColor="@color/echoes_on_accent"
                     app:backgroundTint="@color/echoes_accent" />
 
                 <com.google.android.material.button.MaterialButton

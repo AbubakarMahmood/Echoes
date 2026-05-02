@@ -45,7 +45,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/detailTitleLayout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Echoes.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -58,6 +58,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapSentences"
+                android:textColor="@color/echoes_ink"
+                android:textColorHint="@color/echoes_muted"
                 android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -203,6 +205,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="@string/location_unlock_check_button"
+                    android:textColor="@color/echoes_on_accent"
                     app:backgroundTint="@color/echoes_accent" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -275,7 +278,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/detailBodyLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Echoes.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/story_input_label"
@@ -288,6 +291,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="top|start"
                         android:inputType="textCapSentences|textMultiLine"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:minLines="8" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -364,7 +369,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/detailCommentLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Echoes.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -378,6 +383,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="top|start"
                         android:inputType="textCapSentences|textMultiLine"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:minLines="2" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -387,6 +394,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="@string/comment_add_button"
+                    android:textColor="@color/echoes_on_accent"
                     app:backgroundTint="@color/echoes_accent" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -397,6 +405,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="@string/detail_save_button"
+            android:textColor="@color/echoes_on_accent"
             app:backgroundTint="@color/echoes_accent" />
 
         <com.google.android.material.button.MaterialButton

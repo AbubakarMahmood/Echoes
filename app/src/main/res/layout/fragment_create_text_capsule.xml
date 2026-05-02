@@ -61,7 +61,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/titleLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Echoes.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/title_input_label"
@@ -73,12 +73,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textCapSentences"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:maxLines="1" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/bodyLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Echoes.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
@@ -92,6 +94,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="top|start"
                         android:inputType="textCapSentences|textMultiLine"
+                        android:textColor="@color/echoes_ink"
+                        android:textColorHint="@color/echoes_muted"
                         android:minLines="6" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -172,6 +176,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:text="@string/choose_image_button"
+                            android:textColor="@color/echoes_on_accent"
                             app:backgroundTint="@color/echoes_accent" />
 
                         <com.google.android.material.button.MaterialButton
@@ -243,6 +248,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:text="@string/choose_unlock_time_button"
+                            android:textColor="@color/echoes_on_accent"
                             app:backgroundTint="@color/echoes_accent" />
 
                         <com.google.android.material.button.MaterialButton
@@ -306,6 +312,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:text="@string/choose_location_unlock_button"
+                            android:textColor="@color/echoes_on_accent"
                             app:backgroundTint="@color/echoes_accent" />
 
                         <com.google.android.material.button.MaterialButton
@@ -407,6 +414,7 @@
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         android:text="@string/save_capsule_button"
+                        android:textColor="@color/echoes_on_accent"
                         app:backgroundTint="@color/echoes_accent" />
                 </LinearLayout>
             </LinearLayout>
