@@ -48,9 +48,10 @@ class ArchiveCapsuleAdapter(
             statusText.text = itemView.context.getString(
                 if (capsule.isLocked) R.string.capsule_status_locked else R.string.capsule_status_unlocked
             )
+            val hasBeenEdited = capsule.updatedAt > capsule.createdAt
             timestampText.text = itemView.context.getString(
-                R.string.archive_item_created_at,
-                DateFormatters.formatTimestamp(capsule.createdAt)
+                if (hasBeenEdited) R.string.archive_item_updated_at else R.string.archive_item_created_at,
+                DateFormatters.formatTimestamp(if (hasBeenEdited) capsule.updatedAt else capsule.createdAt)
             )
             previewText.text = capsule.storyText
 

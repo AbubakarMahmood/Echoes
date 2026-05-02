@@ -25,13 +25,37 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/detailTitleText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:text="@string/detail_title"
             android:textColor="@color/echoes_ink"
             android:textSize="30sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/detail_subtitle"
+            android:textColor="@color/echoes_muted"
+            android:textSize="16sp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/detailTitleLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:hint="@string/title_input_label">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/detailTitleInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:id="@+id/detailStatusText"
@@ -72,21 +96,60 @@
             app:strokeColor="@color/echoes_stroke"
             app:strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/detailBodyText"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="24dp"
-                android:textColor="@color/echoes_ink"
-                android:textSize="16sp" />
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/detailBodyLayout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/story_input_label">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/detailBodyInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top|start"
+                        android:inputType="textCapSentences|textMultiLine"
+                        android:minLines="8" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/detail_edit_hint"
+                    android:textColor="@color/echoes_muted"
+                    android:textSize="14sp" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/detailSaveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/detail_save_button"
+            app:backgroundTint="@color/echoes_accent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/detailDeleteButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/detail_delete_button" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/detailBackButton"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="12dp"
             android:text="@string/detail_back_button" />
     </LinearLayout>
 
