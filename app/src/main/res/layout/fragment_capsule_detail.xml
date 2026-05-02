@@ -119,6 +119,14 @@
                     android:textSize="14sp" />
 
                 <TextView
+                    android:id="@+id/detailMediaTypeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/echoes_muted"
+                    android:textSize="14sp" />
+
+                <TextView
                     android:id="@+id/detailUnlockTypeText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -131,6 +139,56 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:textColor="@color/echoes_muted"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/detailImageCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/echoes_canvas"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/echoes_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/detail_image_title"
+                    android:textColor="@color/echoes_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/detailImagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="12dp"
+                    android:contentDescription="@string/detail_image_content_description"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/detailImagePlaceholderText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/echoes_kicker_background"
+                    android:gravity="center"
+                    android:minHeight="120dp"
+                    android:padding="18dp"
+                    android:text="@string/detail_image_missing"
                     android:textColor="@color/echoes_muted"
                     android:textSize="14sp" />
             </LinearLayout>
