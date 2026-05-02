@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Echoes</string>
+    <string name="welcome_kicker">Day 1 checkpoint</string>
+    <string name="welcome_title">Echoes is now a real Android app project.</string>
+    <string name="welcome_subtitle">Navigation, Material theming, and the first screen are in place so we can build the rest of the coursework on something stable.</string>
+    <string name="day_one_heading">What exists right now</string>
+    <string name="day_one_body">A Kotlin Android skeleton with min SDK 26, a nav host, a placeholder welcome screen, and the package layout for the features we will add next.</string>
+    <string name="day_one_button">Next up: Room and the local data model</string>
+</resources>
