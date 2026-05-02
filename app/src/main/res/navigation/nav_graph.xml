@@ -11,10 +11,30 @@
         <action
             android:id="@+id/action_welcomeFragment_to_createTextCapsuleFragment"
             app:destination="@id/createTextCapsuleFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_archiveFragment"
+            app:destination="@id/archiveFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/createTextCapsuleFragment"
         android:name="com.echoes.app.ui.capsule.create.CreateTextCapsuleFragment"
         android:label="@string/create_capsule_screen_label" />
+
+    <fragment
+        android:id="@+id/archiveFragment"
+        android:name="com.echoes.app.ui.archive.PersonalArchiveFragment"
+        android:label="@string/archive_screen_label">
+        <action
+            android:id="@+id/action_archiveFragment_to_createTextCapsuleFragment"
+            app:destination="@id/createTextCapsuleFragment" />
+        <action
+            android:id="@+id/action_archiveFragment_to_capsuleDetailFragment"
+            app:destination="@id/capsuleDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/capsuleDetailFragment"
+        android:name="com.echoes.app.ui.archive.CapsuleDetailFragment"
+        android:label="@string/detail_screen_label" />
 </navigation>
