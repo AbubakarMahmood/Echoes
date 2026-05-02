@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Echoes</string>
-    <string name="welcome_kicker">Day 15 checkpoint</string>
-    <string name="welcome_title">Location unlocks now ask first.</string>
-    <string name="welcome_subtitle">Capsules can be locked to a foreground location check, with permission requested only when the user chooses or checks a location unlock.</string>
+    <string name="welcome_kicker">Day 16 checkpoint</string>
+    <string name="welcome_title">Unlocks can now nudge you back.</string>
+    <string name="welcome_subtitle">Future time capsules can schedule a local unlock notification, while validation and accessibility labels make the core screens safer to use.</string>
     <string name="day_one_heading">What works today</string>
-    <string name="day_one_body">The app now moves through auth, create, archive, discovery, detail, Firestore sync, favourites, comments, and consent-based location unlock while keeping Room as the local base.</string>
+    <string name="day_one_body">The app now moves through auth, create, archive, discovery, detail, Firestore sync, favourites, comments, consent-based location unlock, and local time-unlock notifications while keeping Room as the local base.</string>
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
     <string name="view_discovery_button">Browse discovery</string>
@@ -23,8 +23,8 @@
     <string name="auth_working_button">Working...</string>
     <string name="auth_continue_local_button">Continue locally for now</string>
     <string name="auth_email_error">Enter a valid email address.</string>
-    <string name="auth_password_error">Password must be at least 6 characters.</string>
-    <string name="auth_display_name_error">Display name must be at least 2 characters.</string>
+    <string name="auth_password_error">Password must be 6 to 128 characters.</string>
+    <string name="auth_display_name_error">Display name must be 2 to 40 characters.</string>
     <string name="auth_missing_firebase_config_message">Add google-services.json before using Firebase registration or login.</string>
     <string name="auth_email_in_use_message">That email is already registered.</string>
     <string name="auth_invalid_user_message">No Firebase account was found for that email.</string>
@@ -37,7 +37,7 @@
     <string name="create_capsule_subtitle">This version is still local-first, but it can attach one image and optionally lock the capsule by time or foreground location check.</string>
     <string name="title_input_label">Capsule title</string>
     <string name="story_input_label">Story text</string>
-    <string name="create_capsule_hint">Basic validation is enabled now: title must be at least 3 characters and story text at least 10 characters.</string>
+    <string name="create_capsule_hint">Validation is enabled now: title must be 3 to 80 characters and story text must be 10 to 2,000 characters.</string>
     <string name="create_image_title">Optional image attachment</string>
     <string name="create_image_subtitle">Choose an existing image or capture a new one. The app copies it into local storage so the capsule can reopen it later.</string>
     <string name="create_image_preview_content_description">Selected capsule image preview</string>
@@ -58,6 +58,12 @@
     <string name="choose_unlock_time_button">Choose unlock date and time</string>
     <string name="clear_unlock_time_button">Clear time unlock</string>
     <string name="time_unlock_must_be_future">Choose a future date and time for a time-locked capsule.</string>
+    <string name="unlock_notification_channel_name">Capsule unlocks</string>
+    <string name="unlock_notification_channel_description">Notifications for capsules whose time unlock has arrived.</string>
+    <string name="unlock_notification_title">A capsule is ready</string>
+    <string name="unlock_notification_body">%1$s has reached its unlock time.</string>
+    <string name="unlock_notification_permission_granted_message">Unlock notifications are enabled for this capsule.</string>
+    <string name="unlock_notification_permission_denied_message">Capsule saved without notifications. It will still unlock in the archive.</string>
     <string name="location_unlock_title">Optional location unlock</string>
     <string name="location_unlock_subtitle">Use your current foreground location as the unlock spot. The app only asks for location when you tap this button or later check the capsule.</string>
     <string name="location_unlock_open_now">Location unlock: not set</string>
@@ -78,6 +84,8 @@
     <string name="saving_capsule_button">Saving...</string>
     <string name="error_title_too_short">Title must be at least 3 characters.</string>
     <string name="error_story_too_short">Story text must be at least 10 characters.</string>
+    <string name="error_title_too_long">Title must be 80 characters or fewer.</string>
+    <string name="error_story_too_long">Story text must be 2,000 characters or fewer.</string>
     <string name="capsule_saved_message">Text capsule saved to Room.</string>
     <string name="capsule_save_failed_message">Could not save the capsule. Try again.</string>
     <string name="archive_screen_label">My Archive</string>
@@ -167,6 +175,7 @@
     <string name="comment_add_button">Post comment</string>
     <string name="comment_saving_button">Posting...</string>
     <string name="comment_body_error">Comment must be at least 2 characters.</string>
+    <string name="comment_body_too_long_error">Comment must be 300 characters or fewer.</string>
     <string name="comment_added_message">Comment added.</string>
     <string name="comment_add_failed_message">Could not add that comment.</string>
     <string name="comment_item_value">%1$s • %2$s\n%3$s</string>

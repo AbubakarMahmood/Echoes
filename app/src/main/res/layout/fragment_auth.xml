@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/echoes_canvas">
+    android:background="@color/echoes_canvas"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,6 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:accessibilityHeading="true"
             android:text="@string/auth_title"
             android:textColor="@color/echoes_ink"
             android:textSize="34sp"
@@ -63,6 +65,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/echoes_kicker_background"
+                    android:accessibilityLiveRegion="polite"
                     android:padding="14dp"
                     android:textColor="@color/echoes_ink"
                     android:textSize="14sp"
@@ -90,6 +93,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:hint="@string/auth_password_label"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="128"
                     app:endIconMode="password_toggle">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -106,7 +111,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:hint="@string/auth_display_name_label">
+                    android:hint="@string/auth_display_name_label"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="40">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/authDisplayNameInput"

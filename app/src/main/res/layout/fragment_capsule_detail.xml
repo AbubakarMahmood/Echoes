@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/echoes_canvas">
+    android:background="@color/echoes_canvas"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,6 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:accessibilityHeading="true"
             android:text="@string/detail_title"
             android:textColor="@color/echoes_ink"
             android:textSize="30sp"
@@ -47,7 +49,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:hint="@string/title_input_label">
+            android:hint="@string/title_input_label"
+            app:counterEnabled="true"
+            app:counterMaxLength="80">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/detailTitleInput"
@@ -62,6 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:accessibilityLiveRegion="polite"
             android:background="@drawable/echoes_kicker_background"
             android:paddingStart="10dp"
             android:paddingTop="4dp"
@@ -185,6 +190,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
+                    android:accessibilityLiveRegion="polite"
                     android:background="@drawable/echoes_kicker_background"
                     android:padding="14dp"
                     android:textColor="@color/echoes_ink"
@@ -272,7 +278,9 @@
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/story_input_label">
+                    android:hint="@string/story_input_label"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="2000">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/detailBodyInput"
@@ -360,7 +368,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:hint="@string/comment_input_label">
+                    android:hint="@string/comment_input_label"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="300">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/detailCommentInput"

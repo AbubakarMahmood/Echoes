@@ -1,6 +1,7 @@
 package com.echoes.app.ui.auth
 
 import android.app.Application
+import android.util.Patterns
 import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -125,7 +126,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun validateEmail(email: String): Int? {
-        return if (email.isBlank() || !email.contains("@")) {
+        return if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             R.string.auth_email_error
         } else {
             null
@@ -133,7 +134,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun validatePassword(password: String): Int? {
-        return if (password.length < 6) {
+        return if (password.length < 6 || password.length > 128) {
             R.string.auth_password_error
         } else {
             null
@@ -141,7 +142,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun validateDisplayName(displayName: String): Int? {
-        return if (displayName.length < 2) {
+        return if (displayName.length < 2 || displayName.length > 40) {
             R.string.auth_display_name_error
         } else {
             null
