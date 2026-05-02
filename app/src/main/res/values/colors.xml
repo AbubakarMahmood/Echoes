@@ -3,8 +3,11 @@
     <color name="echoes_canvas">#F5EFE4</color>
     <color name="echoes_card">#FFF9F1</color>
     <color name="echoes_accent">#0D5C63</color>
+    <color name="echoes_on_accent">#FFF9F1</color>
     <color name="echoes_ink">#13262F</color>
     <color name="echoes_muted">#4F646F</color>
     <color name="echoes_stroke">#D8D0C2</color>
+    <color name="echoes_field_stroke">#746F66</color>
+    <color name="echoes_error">#8B1A10</color>
     <color name="echoes_kicker">#D9EAE6</color>
 </resources>

@@ -3,9 +3,23 @@
 
     <style name="Theme.Echoes" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/echoes_accent</item>
+        <item name="colorOnPrimary">@color/echoes_on_accent</item>
         <item name="colorSecondary">@color/echoes_ink</item>
+        <item name="colorOnSecondary">@color/echoes_on_accent</item>
+        <item name="colorError">@color/echoes_error</item>
+        <item name="textInputStyle">@style/Widget.Echoes.TextInputLayout</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/echoes_canvas</item>
+    </style>
+
+    <style name="Widget.Echoes.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/echoes_text_input_stroke</item>
+        <item name="boxStrokeErrorColor">@color/echoes_error</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">@color/echoes_text_input_hint</item>
+        <item name="counterTextColor">@color/echoes_text_input_counter</item>
+        <item name="errorTextColor">@color/echoes_error</item>
     </style>
 
 </resources>

@@ -95,6 +95,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="@string/archive_sync_cloud_button"
+                    android:textColor="@color/echoes_on_accent"
                     app:backgroundTint="@color/echoes_accent" />
 
                 <TextView
@@ -248,6 +249,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:text="@string/archive_empty_button"
+            android:textColor="@color/echoes_on_accent"
             app:backgroundTint="@color/echoes_accent" />
 
         <androidx.recyclerview.widget.RecyclerView

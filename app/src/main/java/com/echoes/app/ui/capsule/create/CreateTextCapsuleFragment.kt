@@ -358,11 +358,20 @@ class CreateTextCapsuleFragment : Fragment() {
                     set(Calendar.MILLISECOND, 0)
                 }
                 viewModel.setDateUnlock(selectedTime.timeInMillis)
+                requestUnlockNotificationPermissionIfNeeded(selectedTime.timeInMillis)
             },
             now.get(Calendar.HOUR_OF_DAY),
             now.get(Calendar.MINUTE),
             true
         ).show()
+    }
+
+    private fun requestUnlockNotificationPermissionIfNeeded(unlockAt: Long) {
+        if (unlockAt <= System.currentTimeMillis()) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        if (CapsuleUnlockNotifier.hasNotificationPermission(requireContext())) return
+
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private fun requestLocationUnlockTarget() {
