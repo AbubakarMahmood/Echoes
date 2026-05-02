@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.echoes.app.R
+import com.google.android.material.button.MaterialButton
 
 class WelcomeFragment : Fragment() {
 
@@ -14,4 +16,12 @@ class WelcomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_welcome, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        view.findViewById<MaterialButton>(R.id.createTextCapsuleButton).setOnClickListener {
+            findNavController().navigate(R.id.action_welcomeFragment_to_createTextCapsuleFragment)
+        }
+    }
 }
