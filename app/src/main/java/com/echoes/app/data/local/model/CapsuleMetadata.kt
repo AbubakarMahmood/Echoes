@@ -8,6 +8,9 @@ data class CapsuleMetadata(
     val unlockType: UnlockType,
     val isLocked: Boolean,
     val unlockAt: Long? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val radiusMeters: Int? = null,
     val satisfiedAt: Long? = null
 ) {
     val hasBeenEdited: Boolean

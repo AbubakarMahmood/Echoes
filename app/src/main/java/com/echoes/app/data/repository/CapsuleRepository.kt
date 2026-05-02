@@ -1,6 +1,7 @@
 package com.echoes.app.data.repository
 
 import android.content.Context
+import android.location.Location
 import android.net.Uri
 import com.echoes.app.data.local.DatabaseProvider
 import com.echoes.app.data.local.SeedData
@@ -11,6 +12,7 @@ import com.echoes.app.data.local.entity.UnlockConditionEntity
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.local.model.CapsuleSocialState
+import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.util.CapsuleImageStorage
 import java.util.UUID
@@ -22,6 +24,13 @@ data class CameraCaptureTarget(
     val imageUri: Uri
 )
 
+data class LocationUnlockCheckResult(
+    val record: CapsuleRecord?,
+    val didUnlock: Boolean,
+    val isWithinRange: Boolean,
+    val distanceMeters: Float?
+)
+
 class CapsuleRepository(context: Context) {
 
     private val appContext = context.applicationContext
@@ -31,15 +40,21 @@ class CapsuleRepository(context: Context) {
         title: String,
         body: String,
         imagePath: String?,
-        unlockAt: Long?
+        unlockAt: Long?,
+        locationUnlockTarget: LocationUnlockTarget?
     ) {
         withContext(Dispatchers.IO) {
             val now = System.currentTimeMillis()
             val capsuleId = UUID.randomUUID().toString()
             val conditionId = UUID.randomUUID().toString()
             val hasFutureDateUnlock = unlockAt != null && unlockAt > now
-            val unlockType = if (hasFutureDateUnlock) UnlockType.DATE else UnlockType.NONE
-            val storedUnlockAt = if (hasFutureDateUnlock) unlockAt else null
+            val hasLocationUnlock = locationUnlockTarget != null
+            val unlockType = when {
+                hasLocationUnlock -> UnlockType.LOCATION
+                hasFutureDateUnlock -> UnlockType.DATE
+                else -> UnlockType.NONE
+            }
+            val storedUnlockAt = if (unlockType == UnlockType.DATE) unlockAt else null
 
             val capsule = CapsuleEntity(
                 capsuleId = capsuleId,
@@ -49,7 +64,7 @@ class CapsuleRepository(context: Context) {
                 mediaType = if (imagePath.isNullOrBlank()) CapsuleMediaType.TEXT else CapsuleMediaType.IMAGE,
                 mediaLocalPath = imagePath,
                 unlockType = unlockType,
-                isLocked = hasFutureDateUnlock,
+                isLocked = hasFutureDateUnlock || hasLocationUnlock,
                 isPublic = false,
                 createdAt = now,
                 updatedAt = now
@@ -59,7 +74,10 @@ class CapsuleRepository(context: Context) {
                 conditionId = conditionId,
                 capsuleId = capsuleId,
                 conditionType = unlockType,
-                unlockAt = storedUnlockAt
+                unlockAt = storedUnlockAt,
+                latitude = locationUnlockTarget?.latitude,
+                longitude = locationUnlockTarget?.longitude,
+                radiusMeters = locationUnlockTarget?.radiusMeters
             )
 
             val existingUser = database.userDao().getUserById(SeedData.LOCAL_USER_ID)
@@ -80,6 +98,77 @@ class CapsuleRepository(context: Context) {
     suspend fun getCapsuleRecord(capsuleId: String): CapsuleRecord? {
         return withContext(Dispatchers.IO) {
             database.capsuleDao().getCapsuleRecord(capsuleId)?.let { resolveTimeUnlockState(it) }
+        }
+    }
+
+    suspend fun checkLocationUnlock(
+        capsuleId: String,
+        currentLatitude: Double,
+        currentLongitude: Double
+    ): LocationUnlockCheckResult {
+        return withContext(Dispatchers.IO) {
+            val record = database.capsuleDao().getCapsuleRecord(capsuleId)?.let { resolveTimeUnlockState(it) }
+                ?: return@withContext LocationUnlockCheckResult(
+                    record = null,
+                    didUnlock = false,
+                    isWithinRange = false,
+                    distanceMeters = null
+                )
+            val unlockCondition = record.unlockCondition
+            if (unlockCondition?.conditionType != UnlockType.LOCATION || !record.capsule.isLocked) {
+                return@withContext LocationUnlockCheckResult(
+                    record = record,
+                    didUnlock = false,
+                    isWithinRange = true,
+                    distanceMeters = null
+                )
+            }
+
+            val targetLatitude = unlockCondition.latitude
+            val targetLongitude = unlockCondition.longitude
+            val radiusMeters = unlockCondition.radiusMeters
+            if (targetLatitude == null || targetLongitude == null || radiusMeters == null) {
+                return@withContext LocationUnlockCheckResult(
+                    record = record,
+                    didUnlock = false,
+                    isWithinRange = false,
+                    distanceMeters = null
+                )
+            }
+
+            val distanceResults = FloatArray(1)
+            Location.distanceBetween(
+                currentLatitude,
+                currentLongitude,
+                targetLatitude,
+                targetLongitude,
+                distanceResults
+            )
+            val distanceMeters = distanceResults.first()
+            val isWithinRange = distanceMeters <= radiusMeters
+            if (!isWithinRange) {
+                return@withContext LocationUnlockCheckResult(
+                    record = record,
+                    didUnlock = false,
+                    isWithinRange = false,
+                    distanceMeters = distanceMeters
+                )
+            }
+
+            val updatedCapsule = record.capsule.copy(isLocked = false)
+            val updatedCondition = unlockCondition.copy(satisfiedAt = System.currentTimeMillis())
+            database.capsuleDao().upsertCapsule(updatedCapsule)
+            database.unlockConditionDao().upsertUnlockCondition(updatedCondition)
+
+            LocationUnlockCheckResult(
+                record = record.copy(
+                    capsule = updatedCapsule,
+                    unlockCondition = updatedCondition
+                ),
+                didUnlock = true,
+                isWithinRange = true,
+                distanceMeters = distanceMeters
+            )
         }
     }
 

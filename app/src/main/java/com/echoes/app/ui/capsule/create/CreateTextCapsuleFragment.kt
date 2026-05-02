@@ -1,5 +1,6 @@
 package com.echoes.app.ui.capsule.create
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.net.Uri
@@ -20,10 +21,12 @@ import androidx.navigation.fragment.findNavController
 import com.echoes.app.R
 import com.echoes.app.data.local.SeedData
 import com.echoes.app.data.local.model.CapsuleMediaType
+import com.echoes.app.data.local.model.LocationUnlockTarget
 import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.util.CapsuleImageStorage
 import com.echoes.app.util.CapsuleMetadataFormatter
 import com.echoes.app.util.DateFormatters
+import com.echoes.app.util.ForegroundLocationReader
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -48,6 +51,16 @@ class CreateTextCapsuleFragment : Fragment() {
         viewModel.handleCameraCaptureResult(success)
     }
 
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            captureLocationUnlockTarget()
+        } else {
+            Snackbar.make(requireView(), R.string.location_permission_denied_message, Snackbar.LENGTH_LONG).show()
+        }
+    }
+
     private lateinit var titleLayout: TextInputLayout
     private lateinit var bodyLayout: TextInputLayout
     private lateinit var titleInput: TextInputEditText
@@ -63,6 +76,9 @@ class CreateTextCapsuleFragment : Fragment() {
     private lateinit var chooseUnlockDateButton: Button
     private lateinit var clearUnlockDateButton: Button
     private lateinit var timeUnlockStatusText: TextView
+    private lateinit var chooseLocationUnlockButton: Button
+    private lateinit var clearLocationUnlockButton: Button
+    private lateinit var locationUnlockStatusText: TextView
     private lateinit var metadataOwnerText: TextView
     private lateinit var metadataMediaTypeText: TextView
     private lateinit var metadataUnlockTypeText: TextView
@@ -99,6 +115,9 @@ class CreateTextCapsuleFragment : Fragment() {
         chooseUnlockDateButton = view.findViewById(R.id.chooseUnlockDateButton)
         clearUnlockDateButton = view.findViewById(R.id.clearUnlockDateButton)
         timeUnlockStatusText = view.findViewById(R.id.timeUnlockStatusText)
+        chooseLocationUnlockButton = view.findViewById(R.id.chooseLocationUnlockButton)
+        clearLocationUnlockButton = view.findViewById(R.id.clearLocationUnlockButton)
+        locationUnlockStatusText = view.findViewById(R.id.locationUnlockStatusText)
         metadataOwnerText = view.findViewById(R.id.createMetadataOwnerText)
         metadataMediaTypeText = view.findViewById(R.id.createMetadataMediaTypeText)
         metadataUnlockTypeText = view.findViewById(R.id.createMetadataUnlockTypeText)
@@ -138,6 +157,14 @@ class CreateTextCapsuleFragment : Fragment() {
         clearUnlockDateButton.setOnClickListener {
             viewModel.clearDateUnlock()
         }
+
+        chooseLocationUnlockButton.setOnClickListener {
+            requestLocationUnlockTarget()
+        }
+
+        clearLocationUnlockButton.setOnClickListener {
+            viewModel.clearLocationUnlock()
+        }
     }
 
     private fun collectViewModel() {
@@ -162,9 +189,10 @@ class CreateTextCapsuleFragment : Fragment() {
         titleLayout.error = state.titleErrorResId?.let(::getString)
         bodyLayout.error = state.bodyErrorResId?.let(::getString)
         setSavingState(state.isSaving)
-        bindMetadataPreview(state.selectedImagePath, state.selectedUnlockAt)
+        bindMetadataPreview(state.selectedImagePath, state.selectedUnlockAt, state.locationUnlockTarget)
         bindImagePreview(state.selectedImagePath)
         bindTimeUnlockPreview(state.selectedUnlockAt)
+        bindLocationUnlockPreview(state.locationUnlockTarget)
     }
 
     private fun handleEvent(event: CreateTextCapsuleEvent) {
@@ -177,7 +205,11 @@ class CreateTextCapsuleFragment : Fragment() {
         }
     }
 
-    private fun bindMetadataPreview(selectedImagePath: String?, selectedUnlockAt: Long?) {
+    private fun bindMetadataPreview(
+        selectedImagePath: String?,
+        selectedUnlockAt: Long?,
+        locationUnlockTarget: LocationUnlockTarget?
+    ) {
         metadataOwnerText.text = getString(
             R.string.create_metadata_owner_value,
             SeedData.LOCAL_USER_NAME,
@@ -194,12 +226,22 @@ class CreateTextCapsuleFragment : Fragment() {
             R.string.create_metadata_unlock_value,
             CapsuleMetadataFormatter.unlockTypeLabel(
                 requireContext(),
-                if (selectedUnlockAt == null) UnlockType.NONE else UnlockType.DATE
+                when {
+                    locationUnlockTarget != null -> UnlockType.LOCATION
+                    selectedUnlockAt != null -> UnlockType.DATE
+                    else -> UnlockType.NONE
+                }
             )
         )
         metadataLockStatusText.text = getString(
             R.string.create_metadata_lock_value,
-            getString(if (selectedUnlockAt == null) R.string.capsule_status_unlocked else R.string.capsule_status_locked)
+            getString(
+                if (selectedUnlockAt == null && locationUnlockTarget == null) {
+                    R.string.capsule_status_unlocked
+                } else {
+                    R.string.capsule_status_locked
+                }
+            )
         )
         metadataTimestampText.text = getString(R.string.create_metadata_timestamps_value)
     }
@@ -212,6 +254,16 @@ class CreateTextCapsuleFragment : Fragment() {
             getString(R.string.time_unlock_selected, DateFormatters.formatTimestamp(selectedUnlockAt))
         }
         clearUnlockDateButton.visibility = if (hasTimeUnlock) View.VISIBLE else View.GONE
+    }
+
+    private fun bindLocationUnlockPreview(locationUnlockTarget: LocationUnlockTarget?) {
+        val hasLocationUnlock = locationUnlockTarget != null
+        locationUnlockStatusText.text = if (locationUnlockTarget == null) {
+            getString(R.string.location_unlock_open_now)
+        } else {
+            getString(R.string.location_unlock_selected, locationUnlockTarget.radiusMeters)
+        }
+        clearLocationUnlockButton.visibility = if (hasLocationUnlock) View.VISIBLE else View.GONE
     }
 
     private fun bindImagePreview(selectedImagePath: String?) {
@@ -239,6 +291,8 @@ class CreateTextCapsuleFragment : Fragment() {
         removeImageButton.isEnabled = !isSaving
         chooseUnlockDateButton.isEnabled = !isSaving
         clearUnlockDateButton.isEnabled = !isSaving
+        chooseLocationUnlockButton.isEnabled = !isSaving
+        clearLocationUnlockButton.isEnabled = !isSaving
         saveButton.text = getString(
             if (isSaving) R.string.saving_capsule_button else R.string.save_capsule_button
         )
@@ -274,5 +328,30 @@ class CreateTextCapsuleFragment : Fragment() {
             now.get(Calendar.MINUTE),
             true
         ).show()
+    }
+
+    private fun requestLocationUnlockTarget() {
+        if (ForegroundLocationReader.hasLocationPermission(requireContext())) {
+            captureLocationUnlockTarget()
+            return
+        }
+
+        locationPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+    }
+
+    private fun captureLocationUnlockTarget() {
+        val location = ForegroundLocationReader.currentBestLocation(requireContext())
+        if (location == null) {
+            Snackbar.make(requireView(), R.string.location_unavailable_message, Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        viewModel.setLocationUnlock(location.latitude, location.longitude)
+        Snackbar.make(requireView(), R.string.location_unlock_target_added_message, Snackbar.LENGTH_SHORT).show()
     }
 }

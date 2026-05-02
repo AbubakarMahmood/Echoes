@@ -1,5 +1,6 @@
 package com.echoes.app.ui.archive
 
+import android.Manifest
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -17,9 +19,11 @@ import com.echoes.app.R
 import com.echoes.app.data.local.entity.CapsuleEntity
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
+import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.util.CapsuleImageStorage
 import com.echoes.app.util.CapsuleMetadataFormatter
 import com.echoes.app.util.DateFormatters
+import com.echoes.app.util.ForegroundLocationReader
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -31,6 +35,16 @@ class CapsuleDetailFragment : Fragment() {
 
     private val viewModel: CapsuleDetailViewModel by viewModels()
 
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.values.any { it }) {
+            checkCurrentLocationUnlock()
+        } else {
+            Snackbar.make(requireView(), R.string.location_permission_denied_message, Snackbar.LENGTH_LONG).show()
+        }
+    }
+
     private lateinit var titleLayout: TextInputLayout
     private lateinit var titleInput: TextInputEditText
     private lateinit var statusText: TextView
@@ -41,6 +55,9 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var metadataUnlockTypeText: TextView
     private lateinit var metadataUnlockScheduleText: TextView
     private lateinit var metadataLockStatusText: TextView
+    private lateinit var locationUnlockCard: View
+    private lateinit var locationUnlockStatusText: TextView
+    private lateinit var checkLocationUnlockButton: MaterialButton
     private lateinit var imageCard: View
     private lateinit var imagePreview: ImageView
     private lateinit var imagePlaceholderText: TextView
@@ -83,6 +100,9 @@ class CapsuleDetailFragment : Fragment() {
         metadataUnlockTypeText = view.findViewById(R.id.detailUnlockTypeText)
         metadataUnlockScheduleText = view.findViewById(R.id.detailUnlockScheduleText)
         metadataLockStatusText = view.findViewById(R.id.detailLockStatusText)
+        locationUnlockCard = view.findViewById(R.id.detailLocationUnlockCard)
+        locationUnlockStatusText = view.findViewById(R.id.detailLocationUnlockStatusText)
+        checkLocationUnlockButton = view.findViewById(R.id.detailCheckLocationUnlockButton)
         imageCard = view.findViewById(R.id.detailImageCard)
         imagePreview = view.findViewById(R.id.detailImagePreview)
         imagePlaceholderText = view.findViewById(R.id.detailImagePlaceholderText)
@@ -122,6 +142,10 @@ class CapsuleDetailFragment : Fragment() {
         addCommentButton.setOnClickListener {
             viewModel.addComment(commentInput.text?.toString().orEmpty())
         }
+
+        checkLocationUnlockButton.setOnClickListener {
+            requestLocationUnlockCheck()
+        }
     }
 
     private fun collectViewModel() {
@@ -150,11 +174,12 @@ class CapsuleDetailFragment : Fragment() {
 
         val record = state.record ?: return
         val capsule = record.capsule
-        val capsuleKey = "${capsule.capsuleId}:${capsule.updatedAt}:${capsule.mediaType}:${capsule.mediaLocalPath}"
+        val capsuleKey = "${capsule.capsuleId}:${capsule.updatedAt}:${capsule.mediaType}:${capsule.mediaLocalPath}:${capsule.isLocked}"
         if (capsuleKey != lastBoundCapsuleKey) {
             lastBoundCapsuleKey = capsuleKey
             bindCapsule(record)
         }
+        bindLocationUnlockControls(state)
         bindSocialState(state)
     }
 
@@ -212,7 +237,7 @@ class CapsuleDetailFragment : Fragment() {
     private fun bindSocialState(state: CapsuleDetailUiState) {
         val record = state.record ?: return
         val isUnlocked = !record.metadata.isLocked
-        val isBusy = state.isSaving || state.isDeleting || state.isUpdatingSocial
+        val isBusy = state.isSaving || state.isDeleting || state.isUpdatingSocial || state.isCheckingLocation
 
         favoriteButton.isEnabled = isUnlocked && !isBusy
         favoriteButton.text = getString(
@@ -246,6 +271,32 @@ class CapsuleDetailFragment : Fragment() {
                 )
             }
         }
+    }
+
+    private fun bindLocationUnlockControls(state: CapsuleDetailUiState) {
+        val record = state.record ?: return
+        val metadata = record.metadata
+        val isLocationLockedCapsule = metadata.unlockType == UnlockType.LOCATION
+        locationUnlockCard.visibility = if (isLocationLockedCapsule) View.VISIBLE else View.GONE
+        if (!isLocationLockedCapsule) return
+
+        locationUnlockStatusText.text = getString(
+            if (metadata.isLocked) {
+                R.string.detail_location_unlock_locked
+            } else {
+                R.string.detail_location_unlock_open
+            },
+            metadata.radiusMeters ?: DEFAULT_LOCATION_RADIUS_METERS
+        )
+        checkLocationUnlockButton.visibility = if (metadata.isLocked) View.VISIBLE else View.GONE
+        checkLocationUnlockButton.isEnabled = !state.isCheckingLocation
+        checkLocationUnlockButton.text = getString(
+            if (state.isCheckingLocation) {
+                R.string.location_unlock_checking_button
+            } else {
+                R.string.location_unlock_check_button
+            }
+        )
     }
 
     private fun commentTextView(text: String, isMuted: Boolean = false): TextView {
@@ -314,7 +365,32 @@ class CapsuleDetailFragment : Fragment() {
         )
     }
 
+    private fun requestLocationUnlockCheck() {
+        if (ForegroundLocationReader.hasLocationPermission(requireContext())) {
+            checkCurrentLocationUnlock()
+            return
+        }
+
+        locationPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+    }
+
+    private fun checkCurrentLocationUnlock() {
+        val location = ForegroundLocationReader.currentBestLocation(requireContext())
+        if (location == null) {
+            Snackbar.make(requireView(), R.string.location_unavailable_message, Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        viewModel.checkLocationUnlock(location.latitude, location.longitude)
+    }
+
     companion object {
         const val ARG_CAPSULE_ID = "capsuleId"
+        private const val DEFAULT_LOCATION_RADIUS_METERS = 150
     }
 }
