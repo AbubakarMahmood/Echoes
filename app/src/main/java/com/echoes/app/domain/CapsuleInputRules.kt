@@ -5,6 +5,14 @@ enum class CapsuleInputError {
     TOO_LONG
 }
 
+/**
+ * Pure validation rules for user-supplied text inputs.
+ *
+ * Centralises length constraints for capsule titles, story bodies, comments,
+ * passwords, and display names. All rules operate on trimmed input and return
+ * a [CapsuleInputError] if the value falls outside the accepted range, or null
+ * if the input is valid. Verified by `CapsuleInputRulesTest`.
+ */
 object CapsuleInputRules {
 
     const val TITLE_MIN_LENGTH = 3

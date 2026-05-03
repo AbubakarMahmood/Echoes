@@ -60,6 +60,15 @@ sealed interface PersonalArchiveEvent {
     data class ShowMessage(@StringRes val messageResId: Int) : PersonalArchiveEvent
 }
 
+/**
+ * ViewModel for the personal archive screen.
+ *
+ * Loads all capsules owned by the local user from [CapsuleRepository], applies
+ * in-memory lock/content filters and sort ordering, and exposes the resulting
+ * list through [uiState] as an immutable [StateFlow]. Also coordinates manual
+ * cloud sync via [CapsuleCloudSyncRepository], surfacing sync status to the UI
+ * without blocking archive browsing.
+ */
 class PersonalArchiveViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = CapsuleRepository(application)

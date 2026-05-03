@@ -1,5 +1,11 @@
 package com.echoes.app.domain
 
+/**
+ * Pure-function rules for evaluating capsule unlock conditions.
+ *
+ * These rules are intentionally free of Android framework dependencies so they
+ * can be verified through fast JVM unit tests (see `CapsuleUnlockRulesTest`).
+ */
 object CapsuleUnlockRules {
 
     fun isFutureTimeUnlock(unlockAt: Long?, now: Long): Boolean {

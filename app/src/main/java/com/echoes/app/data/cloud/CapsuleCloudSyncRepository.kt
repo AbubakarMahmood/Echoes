@@ -13,6 +13,15 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/**
+ * Handles one-directional sync of local capsule records to Cloud Firestore.
+ *
+ * Capsule documents are written to `users/{firebaseUid}/capsules/{capsuleId}`
+ * using Firestore's merge-set strategy so partial updates do not overwrite
+ * fields managed by other clients. The repository checks Firebase configuration
+ * and authentication state before attempting any network call, returning an
+ * explicit [CapsuleSyncResult] status for every outcome.
+ */
 class CapsuleCloudSyncRepository(context: Context) {
 
     private val authRepository = AuthRepository(context)

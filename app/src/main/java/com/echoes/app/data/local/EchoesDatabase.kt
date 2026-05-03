@@ -15,6 +15,16 @@ import com.echoes.app.data.local.entity.FavoriteEntity
 import com.echoes.app.data.local.entity.UnlockConditionEntity
 import com.echoes.app.data.local.entity.UserEntity
 
+/**
+ * Room database definition for the Echoes application.
+ *
+ * Declares five entities ([UserEntity], [CapsuleEntity], [UnlockConditionEntity],
+ * [FavoriteEntity], [CommentEntity]) and exposes DAO accessors for each table.
+ * Schema version history is exported to `app/schemas/` for migration verification.
+ *
+ * The database instance is obtained through [DatabaseProvider], which ensures a
+ * single Room instance is shared application-wide.
+ */
 @Database(
     entities = [
         UserEntity::class,

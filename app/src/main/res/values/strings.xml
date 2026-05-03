@@ -210,4 +210,27 @@
     <string name="unlock_schedule_unlocked_at">Unlocked after %1$s</string>
     <string name="unlock_location_locked_near">Locked near saved spot (%1$d m radius)</string>
     <string name="unlock_location_unlocked">Location verified (%1$d m radius)</string>
+    <string name="view_insights_button">Archive Insights</string>
+    <string name="insights_screen_label">Insights</string>
+    <string name="insights_kicker">Analytics</string>
+    <string name="insights_title">Archive Insights</string>
+    <string name="insights_subtitle">Patterns in your local capsule creation and unlock conditions.</string>
+    <string name="insights_empty">No capsules exist yet to analyse.</string>
+    <string name="insights_composition_heading">Archive composition</string>
+    <string name="insights_total">Total capsules</string>
+    <string name="insights_text_capsules">Text only</string>
+    <string name="insights_image_capsules">With images</string>
+    <string name="insights_lock_heading">Lock status</string>
+    <string name="insights_locked">Currently locked</string>
+    <string name="insights_unlocked">Currently unlocked</string>
+    <string name="insights_condition_heading">Unlock conditions</string>
+    <string name="insights_date_unlock">Time-based</string>
+    <string name="insights_location_unlock">Location-based</string>
+    <string name="insights_no_condition">Open immediately</string>
+    <string name="insights_activity_heading">Recent activity</string>
+    <string name="insights_created_today">Created today</string>
+    <string name="insights_created_this_week">Created in last 7 days</string>
+    <string name="insights_oldest">Oldest capsule</string>
+    <string name="insights_newest">Newest capsule</string>
+    <string name="insights_no_data">N/A</string>
 </resources>

@@ -34,6 +34,14 @@ sealed interface CreateTextCapsuleEvent {
     data object NavigateToArchive : CreateTextCapsuleEvent
 }
 
+/**
+ * ViewModel for the capsule creation screen.
+ *
+ * Holds transient creation state (selected image, unlock date/location,
+ * validation errors) and coordinates saving through [CapsuleRepository].
+ * Image files are managed defensively: replaced images are deleted, and
+ * unsaved attachments are cleaned up in [onCleared] to prevent orphaned files.
+ */
 class CreateTextCapsuleViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = CapsuleRepository(application)

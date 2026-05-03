@@ -33,6 +33,18 @@ data class LocationUnlockCheckResult(
     val distanceMeters: Float?
 )
 
+/**
+ * Central data-access facade for capsule operations.
+ *
+ * This repository coordinates [Room][com.echoes.app.data.local.EchoesDatabase]
+ * persistence, image file management via [CapsuleImageStorage], time-based
+ * unlock evaluation through [CapsuleUnlockRules], location-based unlock checks
+ * using [android.location.Location.distanceBetween], and scheduled unlock
+ * notifications via [CapsuleUnlockNotifier].
+ *
+ * All suspending functions dispatch to [Dispatchers.IO] so callers (typically
+ * ViewModels) are not required to switch dispatchers themselves.
+ */
 class CapsuleRepository(context: Context) {
 
     private val appContext = context.applicationContext

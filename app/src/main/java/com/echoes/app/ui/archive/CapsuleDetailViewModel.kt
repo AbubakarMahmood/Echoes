@@ -37,6 +37,15 @@ sealed interface CapsuleDetailEvent {
     data object NavigateBack : CapsuleDetailEvent
 }
 
+/**
+ * ViewModel for the capsule detail screen.
+ *
+ * Manages the lifecycle of a single capsule view: loading the full
+ * [CapsuleRecord] from Room, toggling favourites, posting comments,
+ * checking foreground location against a location-based unlock condition,
+ * editing capsule text, and deleting the capsule with cascade cleanup.
+ * All state is exposed via [uiState] as an immutable [StateFlow].
+ */
 class CapsuleDetailViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = CapsuleRepository(application)

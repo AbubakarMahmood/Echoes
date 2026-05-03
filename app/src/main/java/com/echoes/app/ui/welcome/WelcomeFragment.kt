@@ -31,5 +31,9 @@ class WelcomeFragment : Fragment() {
         view.findViewById<MaterialButton>(R.id.viewDiscoveryButton).setOnClickListener {
             findNavController().navigate(R.id.action_welcomeFragment_to_discoveryFragment)
         }
+
+        view.findViewById<MaterialButton>(R.id.viewInsightsButton).setOnClickListener {
+            findNavController().navigate(R.id.action_welcomeFragment_to_insightsFragment)
+        }
     }
 }

@@ -28,6 +28,9 @@
         <action
             android:id="@+id/action_welcomeFragment_to_discoveryFragment"
             app:destination="@id/discoveryFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_insightsFragment"
+            app:destination="@id/insightsFragment" />
     </fragment>
 
     <fragment
@@ -60,4 +63,9 @@
         android:id="@+id/capsuleDetailFragment"
         android:name="com.echoes.app.ui.archive.CapsuleDetailFragment"
         android:label="@string/detail_screen_label" />
+
+    <fragment
+        android:id="@+id/insightsFragment"
+        android:name="com.echoes.app.ui.insights.InsightsFragment"
+        android:label="@string/insights_screen_label" />
 </navigation>
