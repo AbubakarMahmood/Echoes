@@ -31,6 +31,11 @@
         <action
             android:id="@+id/action_welcomeFragment_to_insightsFragment"
             app:destination="@id/insightsFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_authFragment"
+            app:destination="@id/authFragment"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment

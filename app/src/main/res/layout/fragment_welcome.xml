@@ -52,6 +52,84 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             app:cardBackgroundColor="@color/echoes_card"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/echoes_stroke"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/day_one_heading"
+                    android:textColor="@color/echoes_ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/day_one_body"
+                    android:textColor="@color/echoes_muted"
+                    android:textSize="15sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/createTextCapsuleButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/create_text_capsule_button"
+                    android:textColor="@color/echoes_on_accent"
+                    app:backgroundTint="@color/echoes_accent"
+                    app:icon="@drawable/ic_echoes_launcher"
+                    app:iconGravity="textStart" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/viewArchiveButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/view_archive_button" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/viewDiscoveryButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/view_discovery_button" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/viewInsightsButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/view_insights_button" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/signOutButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/sign_out_button"
+                    android:textColor="@color/echoes_muted" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:cardBackgroundColor="@color/echoes_card"
             app:cardCornerRadius="24dp"
             app:cardElevation="0dp"
             app:strokeColor="@color/echoes_stroke"
@@ -138,75 +216,6 @@
                     android:text="@string/final_readiness_tests_body"
                     android:textColor="@color/echoes_muted"
                     android:textSize="14sp" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            app:cardBackgroundColor="@color/echoes_card"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/echoes_stroke"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/day_one_heading"
-                    android:textColor="@color/echoes_ink"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/day_one_body"
-                    android:textColor="@color/echoes_muted"
-                    android:textSize="15sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/createTextCapsuleButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/create_text_capsule_button"
-                    android:textColor="@color/echoes_on_accent"
-                    app:backgroundTint="@color/echoes_accent"
-                    app:icon="@drawable/ic_echoes_launcher"
-                    app:iconGravity="textStart" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/viewArchiveButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/view_archive_button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/viewDiscoveryButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/view_discovery_button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/viewInsightsButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/view_insights_button" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

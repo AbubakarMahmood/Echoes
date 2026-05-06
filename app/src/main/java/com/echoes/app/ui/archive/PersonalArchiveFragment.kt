@@ -28,10 +28,12 @@ class PersonalArchiveFragment : Fragment() {
     private lateinit var emptyStateTitle: TextView
     private lateinit var emptyStateBody: TextView
     private lateinit var emptyStateButton: Button
+    private lateinit var emptyRestoreCloudButton: Button
     private lateinit var archiveControlsCard: View
     private lateinit var archiveResultSummaryText: TextView
     private lateinit var cloudSyncStatusText: TextView
     private lateinit var syncCloudButton: Button
+    private lateinit var restoreCloudButton: Button
     private lateinit var lockFilterGroup: MaterialButtonToggleGroup
     private lateinit var contentFilterGroup: MaterialButtonToggleGroup
     private lateinit var sortOptionGroup: MaterialButtonToggleGroup
@@ -61,10 +63,12 @@ class PersonalArchiveFragment : Fragment() {
         emptyStateTitle = view.findViewById(R.id.emptyStateTitle)
         emptyStateBody = view.findViewById(R.id.emptyStateBody)
         emptyStateButton = view.findViewById(R.id.emptyStateButton)
+        emptyRestoreCloudButton = view.findViewById(R.id.emptyRestoreCloudButton)
         archiveControlsCard = view.findViewById(R.id.archiveControlsCard)
         archiveResultSummaryText = view.findViewById(R.id.archiveResultSummaryText)
         cloudSyncStatusText = view.findViewById(R.id.archiveCloudSyncStatusText)
         syncCloudButton = view.findViewById(R.id.archiveSyncCloudButton)
+        restoreCloudButton = view.findViewById(R.id.archiveRestoreCloudButton)
         lockFilterGroup = view.findViewById(R.id.archiveLockFilterGroup)
         contentFilterGroup = view.findViewById(R.id.archiveContentFilterGroup)
         sortOptionGroup = view.findViewById(R.id.archiveSortOptionGroup)
@@ -124,6 +128,14 @@ class PersonalArchiveFragment : Fragment() {
         syncCloudButton.setOnClickListener {
             viewModel.syncArchiveToCloud()
         }
+
+        restoreCloudButton.setOnClickListener {
+            viewModel.restoreArchiveFromCloud()
+        }
+
+        emptyRestoreCloudButton.setOnClickListener {
+            viewModel.restoreArchiveFromCloud()
+        }
     }
 
     private fun collectViewModel() {
@@ -153,9 +165,17 @@ class PersonalArchiveFragment : Fragment() {
 
         archiveControlsCard.visibility = if (hasArchiveItems) View.VISIBLE else View.GONE
         cloudSyncStatusText.text = getString(state.cloudSyncStatusResId)
-        syncCloudButton.isEnabled = hasArchiveItems && !state.isSyncing
+        syncCloudButton.isEnabled = hasArchiveItems && !state.isCloudBusy
         syncCloudButton.text = getString(
             if (state.isSyncing) R.string.archive_cloud_syncing_button else R.string.archive_sync_cloud_button
+        )
+        restoreCloudButton.isEnabled = !state.isCloudBusy
+        restoreCloudButton.text = getString(
+            if (state.isRestoring) {
+                R.string.archive_cloud_restoring_button
+            } else {
+                R.string.archive_restore_cloud_button
+            }
         )
         recyclerView.visibility = if (hasVisibleCapsules) View.VISIBLE else View.GONE
         emptyStateTitle.visibility = if (hasVisibleCapsules) View.GONE else View.VISIBLE
@@ -167,6 +187,22 @@ class PersonalArchiveFragment : Fragment() {
         } else {
             View.VISIBLE
         }
+        emptyStateButton.isEnabled = !state.isCloudBusy
+        emptyRestoreCloudButton.visibility = if (
+            state.hasLoaded && !hasVisibleCapsules && !hasArchiveItems
+        ) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        emptyRestoreCloudButton.isEnabled = !state.isCloudBusy
+        emptyRestoreCloudButton.text = getString(
+            if (state.isRestoring) {
+                R.string.archive_cloud_restoring_button
+            } else {
+                R.string.archive_restore_cloud_button
+            }
+        )
 
         emptyStateTitle.text = getString(
             if (hasArchiveItems) R.string.archive_filtered_empty_title else R.string.archive_empty_title

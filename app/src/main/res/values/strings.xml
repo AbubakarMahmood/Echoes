@@ -18,6 +18,7 @@
     <string name="create_text_capsule_button">Create text capsule</string>
     <string name="view_archive_button">View my archive</string>
     <string name="view_discovery_button">Browse discovery</string>
+    <string name="sign_out_button">Sign out or switch account</string>
     <string name="auth_screen_label">Sign in</string>
     <string name="auth_kicker">Firebase auth</string>
     <string name="auth_title">Sign in to sync your archive.</string>
@@ -103,7 +104,7 @@
     <string name="archive_title">Saved capsules</string>
     <string name="archive_subtitle">This list is loaded straight from Room, with optional Firestore mirroring when Firebase auth and config are available.</string>
     <string name="archive_empty_title">No local capsules yet.</string>
-    <string name="archive_empty_body">Create your first text capsule and it will appear here automatically.</string>
+    <string name="archive_empty_body">Create your first capsule, or restore from Firestore if this device was cleared after a previous sync.</string>
     <string name="archive_empty_button">Create first capsule</string>
     <string name="archive_filtered_empty_title">No capsules match these filters.</string>
     <string name="archive_filtered_empty_body">Try another status/content combination or reset the archive controls.</string>
@@ -113,6 +114,8 @@
     <string name="archive_result_summary">Showing %1$d of %2$d saved capsules</string>
     <string name="archive_sync_cloud_button">Sync archive to Firestore</string>
     <string name="archive_cloud_syncing_button">Syncing to Firestore...</string>
+    <string name="archive_restore_cloud_button">Restore from Firestore</string>
+    <string name="archive_cloud_restoring_button">Restoring from Firestore...</string>
     <string name="archive_cloud_sync_idle">Cloud sync: Room is the source of truth. Tap sync to mirror this archive to Firestore.</string>
     <string name="archive_cloud_sync_working">Cloud sync: sending local capsules to Firestore...</string>
     <string name="archive_cloud_sync_success">Cloud sync complete: local capsules were mirrored to Firestore.</string>
@@ -120,6 +123,11 @@
     <string name="archive_cloud_sync_sign_in_required">Cloud sync needs a Firebase-signed-in user. Local mode stays offline-only.</string>
     <string name="archive_cloud_sync_no_capsules">Cloud sync skipped: there are no local capsules yet.</string>
     <string name="archive_cloud_sync_failed">Cloud sync failed. Check Firebase config, sign-in state, network, and Firestore rules.</string>
+    <string name="archive_cloud_restore_working">Cloud restore: downloading capsule records from Firestore...</string>
+    <string name="archive_cloud_restore_success">Cloud restore complete: Firestore capsule records were saved back into Room.</string>
+    <string name="archive_cloud_restore_success_missing_images">Cloud restore complete: text and metadata returned, but local image files were not backed up.</string>
+    <string name="archive_cloud_restore_no_capsules">Cloud restore found no capsule records in Firestore for this account.</string>
+    <string name="archive_cloud_restore_failed">Cloud restore failed. Check Firebase config, sign-in state, network, and Firestore rules.</string>
     <string name="archive_filter_status_label">Lock status</string>
     <string name="archive_filter_content_label">Content group</string>
     <string name="archive_filter_all">All</string>

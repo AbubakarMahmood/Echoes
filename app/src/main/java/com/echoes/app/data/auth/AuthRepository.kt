@@ -44,6 +44,12 @@ class AuthRepository(context: Context) {
         )
     }
 
+    fun signOut() {
+        if (!isFirebaseConfigured) return
+
+        FirebaseAuth.getInstance().signOut()
+    }
+
     suspend fun register(email: String, password: String, displayName: String): AuthSession {
         return withContext(Dispatchers.IO) {
             val authResult = requireFirebaseAuth()

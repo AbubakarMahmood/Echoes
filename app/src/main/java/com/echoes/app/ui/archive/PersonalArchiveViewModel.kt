@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.echoes.app.R
 import com.echoes.app.data.cloud.CapsuleCloudSyncRepository
+import com.echoes.app.data.cloud.CapsuleRestoreStatus
 import com.echoes.app.data.cloud.CapsuleSyncStatus
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
@@ -39,6 +40,7 @@ enum class ArchiveSortOption {
 data class PersonalArchiveUiState(
     val isLoading: Boolean = false,
     val isSyncing: Boolean = false,
+    val isRestoring: Boolean = false,
     val allCapsules: List<CapsuleRecord> = emptyList(),
     val capsules: List<CapsuleRecord> = emptyList(),
     val lockFilter: ArchiveLockFilter = ArchiveLockFilter.ALL,
@@ -54,6 +56,9 @@ data class PersonalArchiveUiState(
         get() = lockFilter != ArchiveLockFilter.ALL ||
             contentFilter != ArchiveContentFilter.ALL ||
             sortOption != ArchiveSortOption.NEWEST_FIRST
+
+    val isCloudBusy: Boolean
+        get() = isSyncing || isRestoring
 }
 
 sealed interface PersonalArchiveEvent {
@@ -132,7 +137,7 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
 
     fun syncArchiveToCloud() {
         val currentState = _uiState.value
-        if (currentState.isSyncing) return
+        if (currentState.isCloudBusy) return
 
         _uiState.update {
             it.copy(
@@ -166,6 +171,59 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
                     )
                 }
                 _events.emit(PersonalArchiveEvent.ShowMessage(R.string.archive_cloud_sync_failed))
+            }
+        }
+    }
+
+    fun restoreArchiveFromCloud() {
+        val currentState = _uiState.value
+        if (currentState.isCloudBusy) return
+
+        _uiState.update {
+            it.copy(
+                isRestoring = true,
+                cloudSyncStatusResId = R.string.archive_cloud_restore_working
+            )
+        }
+
+        viewModelScope.launch {
+            runCatching {
+                val result = cloudSyncRepository.restoreCapsulesToRoom()
+                val records = if (
+                    result.status == CapsuleRestoreStatus.RESTORED ||
+                    result.status == CapsuleRestoreStatus.RESTORED_WITH_MISSING_IMAGES
+                ) {
+                    repository.getArchiveRecords()
+                } else {
+                    _uiState.value.allCapsules
+                }
+                result to records
+            }.onSuccess { (result, records) ->
+                val messageResId = when (result.status) {
+                    CapsuleRestoreStatus.CONFIG_MISSING -> R.string.archive_cloud_sync_missing_config
+                    CapsuleRestoreStatus.SIGN_IN_REQUIRED -> R.string.archive_cloud_sync_sign_in_required
+                    CapsuleRestoreStatus.NO_REMOTE_CAPSULES -> R.string.archive_cloud_restore_no_capsules
+                    CapsuleRestoreStatus.RESTORED -> R.string.archive_cloud_restore_success
+                    CapsuleRestoreStatus.RESTORED_WITH_MISSING_IMAGES ->
+                        R.string.archive_cloud_restore_success_missing_images
+                }
+                _uiState.update {
+                    it.copy(
+                        isRestoring = false,
+                        allCapsules = records,
+                        hasLoaded = true,
+                        cloudSyncStatusResId = messageResId
+                    ).withArchiveRulesApplied()
+                }
+                _events.emit(PersonalArchiveEvent.ShowMessage(messageResId))
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        isRestoring = false,
+                        cloudSyncStatusResId = R.string.archive_cloud_restore_failed
+                    )
+                }
+                _events.emit(PersonalArchiveEvent.ShowMessage(R.string.archive_cloud_restore_failed))
             }
         }
     }
