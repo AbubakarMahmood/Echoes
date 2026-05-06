@@ -1,7 +1,9 @@
 package com.echoes.app.ui.archive
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +36,17 @@ import kotlinx.coroutines.launch
 class CapsuleDetailFragment : Fragment() {
 
     private val viewModel: CapsuleDetailViewModel by viewModels()
+
+    private var shouldRetryLocationCheckAfterSettings = false
+
+    private val locationSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (shouldRetryLocationCheckAfterSettings) {
+            shouldRetryLocationCheckAfterSettings = false
+            requestLocationUnlockCheck()
+        }
+    }
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -390,6 +403,10 @@ class CapsuleDetailFragment : Fragment() {
 
     private fun requestLocationUnlockCheck() {
         if (ForegroundLocationReader.hasLocationPermission(requireContext())) {
+            if (!ForegroundLocationReader.isLocationServiceEnabled(requireContext())) {
+                showLocationServicesDisabledMessage()
+                return
+            }
             checkCurrentLocationUnlock()
             return
         }
@@ -403,6 +420,11 @@ class CapsuleDetailFragment : Fragment() {
     }
 
     private fun checkCurrentLocationUnlock() {
+        if (!ForegroundLocationReader.isLocationServiceEnabled(requireContext())) {
+            showLocationServicesDisabledMessage()
+            return
+        }
+
         checkLocationUnlockButton.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             val location = ForegroundLocationReader.currentBestLocation(requireContext())
@@ -414,6 +436,15 @@ class CapsuleDetailFragment : Fragment() {
 
             viewModel.checkLocationUnlock(location.latitude, location.longitude)
         }
+    }
+
+    private fun showLocationServicesDisabledMessage() {
+        Snackbar.make(requireView(), R.string.location_services_disabled_message, Snackbar.LENGTH_LONG)
+            .setAction(R.string.open_settings_button) {
+                shouldRetryLocationCheckAfterSettings = true
+                locationSettingsLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+            .show()
     }
 
     companion object {

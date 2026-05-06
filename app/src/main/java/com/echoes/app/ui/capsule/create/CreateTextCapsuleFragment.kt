@@ -3,9 +3,11 @@ package com.echoes.app.ui.capsule.create
 import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,6 +40,7 @@ import kotlinx.coroutines.launch
 class CreateTextCapsuleFragment : Fragment() {
 
     private val viewModel: CreateTextCapsuleViewModel by viewModels()
+    private var shouldRetryLocationCaptureAfterSettings = false
 
     private val selectImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -53,6 +56,15 @@ class CreateTextCapsuleFragment : Fragment() {
         viewModel.handleCameraCaptureResult(success)
     }
 
+    private val locationSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (shouldRetryLocationCaptureAfterSettings) {
+            shouldRetryLocationCaptureAfterSettings = false
+            requestLocationUnlockTarget()
+        }
+    }
+
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -66,15 +78,7 @@ class CreateTextCapsuleFragment : Fragment() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        Snackbar.make(
-            requireView(),
-            if (isGranted) {
-                R.string.unlock_notification_permission_granted_message
-            } else {
-                R.string.unlock_notification_permission_denied_message
-            },
-            Snackbar.LENGTH_LONG
-        ).show()
+        showNotificationPermissionResult(isGranted)
         pendingSaveRequest?.let { request ->
             viewModel.saveCapsule(request.title, request.body)
         }
@@ -376,6 +380,10 @@ class CreateTextCapsuleFragment : Fragment() {
 
     private fun requestLocationUnlockTarget() {
         if (ForegroundLocationReader.hasLocationPermission(requireContext())) {
+            if (!ForegroundLocationReader.isLocationServiceEnabled(requireContext())) {
+                showLocationServicesDisabledMessage()
+                return
+            }
             captureLocationUnlockTarget()
             return
         }
@@ -389,6 +397,11 @@ class CreateTextCapsuleFragment : Fragment() {
     }
 
     private fun captureLocationUnlockTarget() {
+        if (!ForegroundLocationReader.isLocationServiceEnabled(requireContext())) {
+            showLocationServicesDisabledMessage()
+            return
+        }
+
         chooseLocationUnlockButton.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             val location = ForegroundLocationReader.currentBestLocation(requireContext())
@@ -402,6 +415,37 @@ class CreateTextCapsuleFragment : Fragment() {
             viewModel.setLocationUnlock(location.latitude, location.longitude)
             Snackbar.make(requireView(), R.string.location_unlock_target_added_message, Snackbar.LENGTH_SHORT).show()
         }
+    }
+
+    private fun showLocationServicesDisabledMessage() {
+        Snackbar.make(requireView(), R.string.location_services_disabled_message, Snackbar.LENGTH_LONG)
+            .setAction(R.string.open_settings_button) {
+                shouldRetryLocationCaptureAfterSettings = true
+                locationSettingsLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+            .show()
+    }
+
+    private fun showNotificationPermissionResult(isGranted: Boolean) {
+        val snackbar = Snackbar.make(
+            requireView(),
+            if (isGranted) {
+                R.string.unlock_notification_permission_granted_message
+            } else {
+                R.string.unlock_notification_permission_denied_message
+            },
+            Snackbar.LENGTH_LONG
+        )
+        if (!isGranted) {
+            snackbar.setAction(R.string.open_settings_button) {
+                startActivity(
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                        putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                    }
+                )
+            }
+        }
+        snackbar.show()
     }
 
     private data class PendingSaveRequest(

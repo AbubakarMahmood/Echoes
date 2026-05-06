@@ -25,8 +25,22 @@ object ForegroundLocationReader {
             ) == PackageManager.PERMISSION_GRANTED
     }
 
+    fun isLocationServiceEnabled(context: Context): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+            ?: return false
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            locationManager.isLocationEnabled
+        } else {
+            @Suppress("DEPRECATION")
+            locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        }
+    }
+
     suspend fun currentBestLocation(context: Context): Location? {
         if (!hasLocationPermission(context)) return null
+        if (!isLocationServiceEnabled(context)) return null
 
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
             ?: return null

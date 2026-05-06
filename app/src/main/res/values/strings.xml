@@ -73,7 +73,7 @@
     <string name="unlock_notification_title">A capsule is ready</string>
     <string name="unlock_notification_body">%1$s has reached its unlock time.</string>
     <string name="unlock_notification_permission_granted_message">Unlock notifications are enabled for this capsule.</string>
-    <string name="unlock_notification_permission_denied_message">Unlock notifications are off. Capsules still save and open in the archive.</string>
+    <string name="unlock_notification_permission_denied_message">Notifications are off for Echoes. This capsule will still save and unlock in the archive, but Android will not show an alert.</string>
     <string name="location_unlock_title">Optional location unlock</string>
     <string name="location_unlock_subtitle">Use your current foreground location as the unlock spot. The app only asks for location when you tap this button or later check the capsule.</string>
     <string name="location_unlock_open_now">Location unlock: not set</string>
@@ -83,6 +83,8 @@
     <string name="location_unlock_target_added_message">Location unlock spot saved for this capsule.</string>
     <string name="location_permission_denied_message">Location permission was denied. The app still works without location unlock.</string>
     <string name="location_unavailable_message">No current location fix was available. Keep Location on, move near a window if needed, and try again.</string>
+    <string name="location_services_disabled_message">Phone Location is turned off. Enable Location in system settings, then return to Echoes.</string>
+    <string name="open_settings_button">Open settings</string>
     <string name="create_metadata_title">Metadata that will be stored</string>
     <string name="create_metadata_owner_value">Owner: %1$s (%2$s)</string>
     <string name="create_metadata_media_value">Media type: %1$s</string>
@@ -167,10 +169,10 @@
     <string name="detail_lock_status_value">Lock status: %1$s</string>
     <string name="detail_location_unlock_title">Location unlock check</string>
     <string name="detail_location_unlock_locked">Locked until you check in within %1$d metres of the saved spot.</string>
-    <string name="detail_location_unlock_open">Location verified within %1$d metres. This capsule is open.</string>
+    <string name="detail_location_unlock_open">Place verified within %1$d metres. This capsule is open.</string>
     <string name="location_unlock_check_button">Check my location</string>
     <string name="location_unlock_checking_button">Checking location...</string>
-    <string name="location_unlock_success_message">Location verified. Capsule unlocked.</string>
+    <string name="location_unlock_success_message">Place verified. Capsule unlocked.</string>
     <string name="location_unlock_not_close_message">You are not close enough to unlock this capsule yet.</string>
     <string name="location_unlock_already_open_message">This capsule is already open.</string>
     <string name="location_unlock_check_failed_message">Could not check the location unlock right now.</string>
@@ -221,7 +223,7 @@
     <string name="unlock_schedule_locked_until">Locked until %1$s</string>
     <string name="unlock_schedule_unlocked_at">Unlocked after %1$s</string>
     <string name="unlock_location_locked_near">Locked near saved spot (%1$d m radius)</string>
-    <string name="unlock_location_unlocked">Location verified (%1$d m radius)</string>
+    <string name="unlock_location_unlocked">Place verified (%1$d m radius)</string>
     <string name="view_insights_button">Archive Insights</string>
     <string name="insights_screen_label">Insights</string>
     <string name="insights_kicker">Analytics</string>
