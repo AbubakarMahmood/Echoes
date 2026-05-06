@@ -63,6 +63,7 @@ class CapsuleDetailFragment : Fragment() {
     private lateinit var imagePlaceholderText: TextView
     private lateinit var bodyLayout: TextInputLayout
     private lateinit var bodyInput: TextInputEditText
+    private lateinit var editHintText: TextView
     private lateinit var saveButton: MaterialButton
     private lateinit var deleteButton: MaterialButton
     private lateinit var backButton: MaterialButton
@@ -108,6 +109,7 @@ class CapsuleDetailFragment : Fragment() {
         imagePlaceholderText = view.findViewById(R.id.detailImagePlaceholderText)
         bodyLayout = view.findViewById(R.id.detailBodyLayout)
         bodyInput = view.findViewById(R.id.detailBodyInput)
+        editHintText = view.findViewById(R.id.detailEditHintText)
         saveButton = view.findViewById(R.id.detailSaveButton)
         deleteButton = view.findViewById(R.id.detailDeleteButton)
         backButton = view.findViewById(R.id.detailBackButton)
@@ -170,7 +172,8 @@ class CapsuleDetailFragment : Fragment() {
         titleLayout.error = state.titleErrorResId?.let(::getString)
         bodyLayout.error = state.bodyErrorResId?.let(::getString)
         commentLayout.error = state.commentErrorResId?.let(::getString)
-        setActionState(isSaving = state.isSaving, isDeleting = state.isDeleting)
+        val isLocked = state.record?.metadata?.isLocked == true
+        setActionState(isSaving = state.isSaving, isDeleting = state.isDeleting, isLocked = isLocked)
 
         val record = state.record ?: return
         val capsule = record.capsule
@@ -230,8 +233,21 @@ class CapsuleDetailFragment : Fragment() {
             R.string.detail_lock_status_value,
             CapsuleMetadataFormatter.lockStatusLabel(requireContext(), metadata)
         )
-        bindImage(capsule)
-        bodyInput.setText(capsule.storyText)
+        bindImage(capsule, metadata.isLocked)
+        bodyInput.setText(
+            if (metadata.isLocked) {
+                getString(R.string.detail_locked_story_placeholder)
+            } else {
+                capsule.storyText
+            }
+        )
+        editHintText.text = getString(
+            if (metadata.isLocked) {
+                R.string.detail_locked_edit_hint
+            } else {
+                R.string.detail_edit_hint
+            }
+        )
     }
 
     private fun bindSocialState(state: CapsuleDetailUiState) {
@@ -317,10 +333,10 @@ class CapsuleDetailFragment : Fragment() {
         }
     }
 
-    private fun bindImage(capsule: CapsuleEntity) {
+    private fun bindImage(capsule: CapsuleEntity, isLocked: Boolean) {
         val imageUri = CapsuleImageStorage.uriForStoredPath(capsule.mediaLocalPath)
         val shouldShowImageCard = capsule.mediaType == CapsuleMediaType.IMAGE || imageUri != null
-        val hasUsableImage = imageUri != null
+        val hasUsableImage = imageUri != null && !isLocked
 
         imageCard.visibility = if (shouldShowImageCard) View.VISIBLE else View.GONE
 
@@ -333,7 +349,13 @@ class CapsuleDetailFragment : Fragment() {
 
         imagePreview.visibility = if (hasUsableImage) View.VISIBLE else View.GONE
         imagePlaceholderText.visibility = if (hasUsableImage) View.GONE else View.VISIBLE
-        imagePlaceholderText.text = getString(R.string.detail_image_missing)
+        imagePlaceholderText.text = getString(
+            if (isLocked) {
+                R.string.detail_locked_image_placeholder
+            } else {
+                R.string.detail_image_missing
+            }
+        )
     }
 
     private fun confirmDelete() {
@@ -349,11 +371,12 @@ class CapsuleDetailFragment : Fragment() {
             .show()
     }
 
-    private fun setActionState(isSaving: Boolean, isDeleting: Boolean) {
+    private fun setActionState(isSaving: Boolean, isDeleting: Boolean, isLocked: Boolean) {
         val isBusy = isSaving || isDeleting
-        titleInput.isEnabled = !isBusy
-        bodyInput.isEnabled = !isBusy
-        saveButton.isEnabled = !isBusy
+        titleInput.isEnabled = !isBusy && !isLocked
+        bodyInput.isEnabled = !isBusy && !isLocked
+        saveButton.visibility = if (isLocked) View.GONE else View.VISIBLE
+        saveButton.isEnabled = !isBusy && !isLocked
         deleteButton.isEnabled = !isBusy
         backButton.isEnabled = !isBusy
 
@@ -380,13 +403,17 @@ class CapsuleDetailFragment : Fragment() {
     }
 
     private fun checkCurrentLocationUnlock() {
-        val location = ForegroundLocationReader.currentBestLocation(requireContext())
-        if (location == null) {
-            Snackbar.make(requireView(), R.string.location_unavailable_message, Snackbar.LENGTH_LONG).show()
-            return
-        }
+        checkLocationUnlockButton.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val location = ForegroundLocationReader.currentBestLocation(requireContext())
+            if (location == null) {
+                checkLocationUnlockButton.isEnabled = true
+                Snackbar.make(requireView(), R.string.location_unavailable_message, Snackbar.LENGTH_LONG).show()
+                return@launch
+            }
 
-        viewModel.checkLocationUnlock(location.latitude, location.longitude)
+            viewModel.checkLocationUnlock(location.latitude, location.longitude)
+        }
     }
 
     companion object {

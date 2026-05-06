@@ -82,7 +82,7 @@
     <string name="clear_location_unlock_button">Clear location unlock</string>
     <string name="location_unlock_target_added_message">Location unlock spot saved for this capsule.</string>
     <string name="location_permission_denied_message">Location permission was denied. The app still works without location unlock.</string>
-    <string name="location_unavailable_message">No current location was available. Try again after enabling location services.</string>
+    <string name="location_unavailable_message">No current location fix was available. Keep Location on, move near a window if needed, and try again.</string>
     <string name="create_metadata_title">Metadata that will be stored</string>
     <string name="create_metadata_owner_value">Owner: %1$s (%2$s)</string>
     <string name="create_metadata_media_value">Media type: %1$s</string>
@@ -151,8 +151,8 @@
     <string name="capsule_status_unlocked">Unlocked</string>
     <string name="detail_screen_label">Capsule Detail</string>
     <string name="detail_kicker">Capsule detail</string>
-    <string name="detail_title">Edit your saved capsule.</string>
-    <string name="detail_subtitle">This screen keeps the local CRUD loop intact and now reopens any image attached to the capsule.</string>
+    <string name="detail_title">Review your saved capsule.</string>
+    <string name="detail_subtitle">Check unlock status, verify location locks, and edit story content once the capsule is open.</string>
     <string name="detail_back_button">Back to archive</string>
     <string name="detail_save_button">Save changes</string>
     <string name="detail_saving_button">Saving changes...</string>
@@ -178,6 +178,9 @@
     <string name="detail_image_content_description">Saved capsule image</string>
     <string name="detail_image_missing">The image reference exists, but the file could not be opened.</string>
     <string name="detail_edit_hint">Edits stay local for now. Saving updates the capsule metadata and the archive will reflect the change when you return.</string>
+    <string name="detail_locked_edit_hint">This capsule is sealed. Story edits unlock after the time or place condition is met.</string>
+    <string name="detail_locked_story_placeholder">Story sealed until this capsule unlocks.</string>
+    <string name="detail_locked_image_placeholder">Image sealed until this capsule unlocks.</string>
     <string name="social_title">Favourites and comments</string>
     <string name="social_locked_capsule_hint">Social actions are available after this capsule unlocks.</string>
     <string name="social_locked_capsule_message">Unlock this capsule before favouriting or commenting.</string>
@@ -199,6 +202,7 @@
     <string name="capsule_detail_missing_message">That capsule could not be found.</string>
     <string name="capsule_detail_load_failed_message">Could not load capsule details.</string>
     <string name="capsule_updated_message">Capsule updated locally.</string>
+    <string name="capsule_locked_edit_message">Unlock this capsule before editing its story.</string>
     <string name="capsule_update_failed_message">Could not update the capsule. Try again.</string>
     <string name="capsule_deleted_message">Capsule deleted from your archive.</string>
     <string name="capsule_delete_failed_message">Could not delete the capsule. Try again.</string>

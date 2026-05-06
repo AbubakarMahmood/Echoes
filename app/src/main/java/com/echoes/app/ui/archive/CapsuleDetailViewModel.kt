@@ -8,9 +8,12 @@ import com.echoes.app.R
 import com.echoes.app.data.cloud.CapsuleCloudSyncRepository
 import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.local.model.CapsuleSocialState
+import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.data.repository.CapsuleRepository
 import com.echoes.app.domain.CapsuleInputError
 import com.echoes.app.domain.CapsuleInputRules
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -58,6 +61,7 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
     val events: SharedFlow<CapsuleDetailEvent> = _events.asSharedFlow()
 
     private var loadedCapsuleId: String? = null
+    private var timeUnlockRefreshJob: Job? = null
 
     fun loadCapsule(capsuleId: String?) {
         if (capsuleId.isNullOrBlank()) {
@@ -93,8 +97,11 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
                 }
 
                 if (record == null) {
+                    timeUnlockRefreshJob?.cancel()
                     _events.emit(CapsuleDetailEvent.ShowMessage(R.string.capsule_detail_missing_message))
                     _events.emit(CapsuleDetailEvent.NavigateBack)
+                } else {
+                    scheduleTimeUnlockRefresh(record)
                 }
             }.onFailure {
                 _uiState.update { it.copy(isLoading = false) }
@@ -216,7 +223,14 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun saveChanges(title: String, body: String) {
-        val capsule = _uiState.value.record?.capsule ?: return
+        val record = _uiState.value.record ?: return
+        if (record.metadata.isLocked) {
+            viewModelScope.launch {
+                _events.emit(CapsuleDetailEvent.ShowMessage(R.string.capsule_locked_edit_message))
+            }
+            return
+        }
+        val capsule = record.capsule
         if (_uiState.value.isSaving) return
 
         val trimmedTitle = title.trim()
@@ -274,12 +288,35 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
+    override fun onCleared() {
+        timeUnlockRefreshJob?.cancel()
+        super.onCleared()
+    }
+
     private fun syncRecordSilently(record: CapsuleRecord) {
         viewModelScope.launch {
             runCatching {
                 cloudSyncRepository.syncCapsules(listOf(record))
             }
         }
+    }
+
+    private fun scheduleTimeUnlockRefresh(record: CapsuleRecord) {
+        timeUnlockRefreshJob?.cancel()
+        val metadata = record.metadata
+        val unlockAt = metadata.unlockAt ?: return
+        val now = System.currentTimeMillis()
+        if (!metadata.isLocked || metadata.unlockType != UnlockType.DATE || unlockAt <= now) return
+
+        timeUnlockRefreshJob = viewModelScope.launch {
+            delay((unlockAt - now).coerceAtLeast(0L) + UNLOCK_REFRESH_GRACE_MS)
+            loadedCapsuleId = null
+            loadCapsule(record.capsule.capsuleId)
+        }
+    }
+
+    private companion object {
+        const val UNLOCK_REFRESH_GRACE_MS = 750L
     }
 
 }

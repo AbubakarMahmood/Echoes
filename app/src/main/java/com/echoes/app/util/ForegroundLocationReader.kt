@@ -5,7 +5,12 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
+import android.os.CancellationSignal
 import androidx.core.content.ContextCompat
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 
 object ForegroundLocationReader {
 
@@ -20,15 +25,30 @@ object ForegroundLocationReader {
             ) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun currentBestLocation(context: Context): Location? {
+    suspend fun currentBestLocation(context: Context): Location? {
         if (!hasLocationPermission(context)) return null
 
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
             ?: return null
+        val appContext = context.applicationContext
+        val providers = locationManager.getProviders(true).sortedByProviderQuality()
 
-        return locationManager.getProviders(true)
+        val lastKnownLocation = providers
             .mapNotNull { provider -> locationManager.safeLastKnownLocation(provider) }
             .maxByOrNull { it.time }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return lastKnownLocation
+        }
+
+        for (provider in providers) {
+            val freshLocation = withTimeoutOrNull(FRESH_LOCATION_TIMEOUT_MS) {
+                locationManager.safeCurrentLocation(appContext, provider)
+            }
+            if (freshLocation != null) return freshLocation
+        }
+
+        return lastKnownLocation
     }
 
     @Suppress("MissingPermission")
@@ -37,4 +57,45 @@ object ForegroundLocationReader {
             getLastKnownLocation(provider)
         }.getOrNull()
     }
+
+    @Suppress("MissingPermission")
+    private suspend fun LocationManager.safeCurrentLocation(
+        context: Context,
+        provider: String
+    ): Location? {
+        return suspendCancellableCoroutine { continuation ->
+            val cancellationSignal = CancellationSignal()
+            continuation.invokeOnCancellation {
+                cancellationSignal.cancel()
+            }
+
+            runCatching {
+                getCurrentLocation(
+                    provider,
+                    cancellationSignal,
+                    ContextCompat.getMainExecutor(context)
+                ) { location ->
+                    if (continuation.isActive) {
+                        continuation.resume(location)
+                    }
+                }
+            }.onFailure {
+                if (continuation.isActive) {
+                    continuation.resume(null)
+                }
+            }
+        }
+    }
+
+    private fun List<String>.sortedByProviderQuality(): List<String> {
+        return sortedBy { provider ->
+            when (provider) {
+                LocationManager.GPS_PROVIDER -> 0
+                LocationManager.NETWORK_PROVIDER -> 1
+                else -> 2
+            }
+        }
+    }
+
+    private const val FRESH_LOCATION_TIMEOUT_MS = 7_000L
 }

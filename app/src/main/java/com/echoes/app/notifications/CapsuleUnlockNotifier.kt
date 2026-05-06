@@ -19,6 +19,7 @@ import com.echoes.app.R
 object CapsuleUnlockNotifier {
 
     const val ACTION_UNLOCK_NOTIFICATION = "com.echoes.app.action.UNLOCK_NOTIFICATION"
+    const val ACTION_OPEN_CAPSULE = "com.echoes.app.action.OPEN_CAPSULE"
     const val EXTRA_CAPSULE_ID = "extra_capsule_id"
     const val EXTRA_CAPSULE_TITLE = "extra_capsule_title"
 
@@ -87,7 +88,11 @@ object CapsuleUnlockNotifier {
 
         createNotificationChannel(context)
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            action = ACTION_OPEN_CAPSULE
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(EXTRA_CAPSULE_ID, capsuleId)
         }
         val openAppPendingIntent = PendingIntent.getActivity(
             context,

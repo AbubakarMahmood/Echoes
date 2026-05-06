@@ -389,14 +389,19 @@ class CreateTextCapsuleFragment : Fragment() {
     }
 
     private fun captureLocationUnlockTarget() {
-        val location = ForegroundLocationReader.currentBestLocation(requireContext())
-        if (location == null) {
-            Snackbar.make(requireView(), R.string.location_unavailable_message, Snackbar.LENGTH_LONG).show()
-            return
-        }
+        chooseLocationUnlockButton.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val location = ForegroundLocationReader.currentBestLocation(requireContext())
+            if (location == null) {
+                chooseLocationUnlockButton.isEnabled = true
+                Snackbar.make(requireView(), R.string.location_unavailable_message, Snackbar.LENGTH_LONG).show()
+                return@launch
+            }
 
-        viewModel.setLocationUnlock(location.latitude, location.longitude)
-        Snackbar.make(requireView(), R.string.location_unlock_target_added_message, Snackbar.LENGTH_SHORT).show()
+            chooseLocationUnlockButton.isEnabled = true
+            viewModel.setLocationUnlock(location.latitude, location.longitude)
+            Snackbar.make(requireView(), R.string.location_unlock_target_added_message, Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     private data class PendingSaveRequest(

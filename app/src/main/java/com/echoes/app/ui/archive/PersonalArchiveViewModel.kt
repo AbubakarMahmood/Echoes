@@ -10,7 +10,10 @@ import com.echoes.app.data.cloud.CapsuleRestoreStatus
 import com.echoes.app.data.cloud.CapsuleSyncStatus
 import com.echoes.app.data.local.model.CapsuleMediaType
 import com.echoes.app.data.local.model.CapsuleRecord
+import com.echoes.app.data.local.model.UnlockType
 import com.echoes.app.data.repository.CapsuleRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -83,6 +86,7 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
 
     private val _events = MutableSharedFlow<PersonalArchiveEvent>()
     val events: SharedFlow<PersonalArchiveEvent> = _events.asSharedFlow()
+    private var timeUnlockRefreshJob: Job? = null
 
     fun loadArchive() {
         if (_uiState.value.isLoading) return
@@ -101,6 +105,7 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
                     ).withArchiveRulesApplied()
                 }
                 syncUnlockedRecordsSilently(records)
+                scheduleNextTimeUnlockRefresh(records)
             }.onFailure {
                 _uiState.update { it.copy(isLoading = false, hasLoaded = true) }
                 _events.emit(PersonalArchiveEvent.ShowMessage(R.string.archive_load_failed_message))
@@ -216,6 +221,7 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
                         cloudSyncStatusResId = messageResId
                     ).withArchiveRulesApplied()
                 }
+                scheduleNextTimeUnlockRefresh(records)
                 _events.emit(PersonalArchiveEvent.ShowMessage(messageResId))
             }.onFailure {
                 _uiState.update {
@@ -229,6 +235,11 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
         }
     }
 
+    override fun onCleared() {
+        timeUnlockRefreshJob?.cancel()
+        super.onCleared()
+    }
+
     private fun syncUnlockedRecordsSilently(records: List<CapsuleRecord>) {
         val unlockedRecords = records.filter { record ->
             !record.metadata.isLocked && record.metadata.satisfiedAt != null
@@ -239,6 +250,24 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
             runCatching {
                 cloudSyncRepository.syncCapsules(unlockedRecords)
             }
+        }
+    }
+
+    private fun scheduleNextTimeUnlockRefresh(records: List<CapsuleRecord>) {
+        timeUnlockRefreshJob?.cancel()
+        val now = System.currentTimeMillis()
+        val nextUnlockAt = records.mapNotNull { record ->
+            val metadata = record.metadata
+            metadata.unlockAt?.takeIf {
+                metadata.isLocked &&
+                    metadata.unlockType == UnlockType.DATE &&
+                    it > now
+            }
+        }.minOrNull() ?: return
+
+        timeUnlockRefreshJob = viewModelScope.launch {
+            delay((nextUnlockAt - now).coerceAtLeast(0L) + UNLOCK_REFRESH_GRACE_MS)
+            loadArchive()
         }
     }
 
@@ -274,5 +303,9 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
         } else {
             metadata.createdAt
         }
+    }
+
+    private companion object {
+        const val UNLOCK_REFRESH_GRACE_MS = 750L
     }
 }
