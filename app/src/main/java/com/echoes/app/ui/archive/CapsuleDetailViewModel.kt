@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.echoes.app.R
+import com.echoes.app.data.cloud.CapsuleCloudSyncRepository
 import com.echoes.app.data.local.model.CapsuleRecord
 import com.echoes.app.data.local.model.CapsuleSocialState
 import com.echoes.app.data.repository.CapsuleRepository
@@ -49,6 +50,7 @@ sealed interface CapsuleDetailEvent {
 class CapsuleDetailViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = CapsuleRepository(application)
+    private val cloudSyncRepository = CapsuleCloudSyncRepository(application)
     private val _uiState = MutableStateFlow(CapsuleDetailUiState())
     val uiState: StateFlow<CapsuleDetailUiState> = _uiState.asStateFlow()
 
@@ -85,6 +87,9 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
                         record = record,
                         socialState = socialState
                     )
+                }
+                if (record?.metadata?.satisfiedAt != null) {
+                    syncRecordSilently(record)
                 }
 
                 if (record == null) {
@@ -184,11 +189,15 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
                     currentLongitude = currentLongitude
                 )
             }.onSuccess { result ->
+                val updatedRecord = result.record
                 _uiState.update {
                     it.copy(
                         isCheckingLocation = false,
-                        record = result.record ?: it.record
+                        record = updatedRecord ?: it.record
                     )
+                }
+                if (result.didUnlock && updatedRecord != null) {
+                    syncRecordSilently(updatedRecord)
                 }
                 _events.emit(
                     CapsuleDetailEvent.ShowMessage(
@@ -261,6 +270,14 @@ class CapsuleDetailViewModel(application: Application) : AndroidViewModel(applic
             }.onFailure {
                 _uiState.update { it.copy(isDeleting = false) }
                 _events.emit(CapsuleDetailEvent.ShowMessage(R.string.capsule_delete_failed_message))
+            }
+        }
+    }
+
+    private fun syncRecordSilently(record: CapsuleRecord) {
+        viewModelScope.launch {
+            runCatching {
+                cloudSyncRepository.syncCapsules(listOf(record))
             }
         }
     }

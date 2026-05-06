@@ -109,10 +109,16 @@ class CapsuleCloudSyncRepository(context: Context) {
                 val hasRemoteImage = mediaType == CapsuleMediaType.IMAGE &&
                     document.getBoolean("hasLocalImage") == true
                 val unlockType = document.getString("unlockType").toUnlockType()
+                val satisfiedAt = document.getLong("satisfiedAt")
                 val existingCondition = database.unlockConditionDao()
                     .getUnlockConditionForCapsule(capsuleId)
                 val createdAt = document.getLong("createdAt") ?: now
                 val updatedAt = document.getLong("updatedAt") ?: createdAt
+                val isLocked = when {
+                    satisfiedAt != null -> false
+                    unlockType == UnlockType.NONE -> false
+                    else -> document.getBoolean("isLocked") ?: true
+                }
 
                 val capsule = CapsuleEntity(
                     capsuleId = capsuleId,
@@ -122,7 +128,7 @@ class CapsuleCloudSyncRepository(context: Context) {
                     mediaType = mediaType,
                     mediaLocalPath = null,
                     unlockType = unlockType,
-                    isLocked = document.getBoolean("isLocked") ?: (unlockType != UnlockType.NONE),
+                    isLocked = isLocked,
                     isPublic = false,
                     createdAt = createdAt,
                     updatedAt = updatedAt
@@ -135,7 +141,7 @@ class CapsuleCloudSyncRepository(context: Context) {
                     latitude = document.getDouble("latitude"),
                     longitude = document.getDouble("longitude"),
                     radiusMeters = document.getLong("radiusMeters")?.toInt(),
-                    satisfiedAt = document.getLong("satisfiedAt")
+                    satisfiedAt = satisfiedAt
                 )
 
                 database.capsuleDao().upsertCapsule(capsule)

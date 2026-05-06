@@ -100,6 +100,7 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
                         hasLoaded = true
                     ).withArchiveRulesApplied()
                 }
+                syncUnlockedRecordsSilently(records)
             }.onFailure {
                 _uiState.update { it.copy(isLoading = false, hasLoaded = true) }
                 _events.emit(PersonalArchiveEvent.ShowMessage(R.string.archive_load_failed_message))
@@ -224,6 +225,19 @@ class PersonalArchiveViewModel(application: Application) : AndroidViewModel(appl
                     )
                 }
                 _events.emit(PersonalArchiveEvent.ShowMessage(R.string.archive_cloud_restore_failed))
+            }
+        }
+    }
+
+    private fun syncUnlockedRecordsSilently(records: List<CapsuleRecord>) {
+        val unlockedRecords = records.filter { record ->
+            !record.metadata.isLocked && record.metadata.satisfiedAt != null
+        }
+        if (unlockedRecords.isEmpty() || _uiState.value.isCloudBusy) return
+
+        viewModelScope.launch {
+            runCatching {
+                cloudSyncRepository.syncCapsules(unlockedRecords)
             }
         }
     }

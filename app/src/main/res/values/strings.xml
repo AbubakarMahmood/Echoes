@@ -142,7 +142,7 @@
     <string name="discovery_title">Unlocked capsules</string>
     <string name="discovery_subtitle">Browse capsules that are open now. This is local-first today and ready to grow into shared Firestore discovery later.</string>
     <string name="discovery_empty_title">No unlocked capsules yet.</string>
-    <string name="discovery_empty_body">Create an open capsule, or wait for a time-locked capsule to unlock, and it will appear here.</string>
+    <string name="discovery_empty_body">Create an open capsule, wait for a time lock, or open a location-locked capsule from your archive and check your location. Only locally unlocked capsules appear here.</string>
     <string name="discovery_load_failed_message">Could not load discovery capsules.</string>
     <string name="archive_item_created_at">Created %1$s</string>
     <string name="archive_item_updated_at">Updated %1$s</string>
