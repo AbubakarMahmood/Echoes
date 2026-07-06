@@ -1,6 +1,6 @@
 # Echoes
 
-Echoes is a Kotlin Android time-capsule app built for the CPS5012 Mobile Application Development assessment. It lets a user create personal memory capsules, store them locally, unlock them by time or location, browse their archive, and optionally mirror capsule records to Firebase.
+Echoes is a Kotlin Android time-capsule app. It lets a user create personal memory capsules, store them locally, unlock them by time or location, browse their archive, and optionally mirror capsule records to Firebase.
 
 The project is intentionally local-first: Room is the source of truth, while Firebase Authentication and Cloud Firestore are used as an authenticated sync layer when project credentials are supplied locally.
 
@@ -109,6 +109,6 @@ app/src/main/java/com/echoes/app
 
 ## Current Scope
 
-This is a coursework application, not a production deployment. The implemented scope focuses on local persistence, Android architecture, unlock mechanics, Firebase integration, privacy-aware defaults, and evidence-friendly Git history.
+This is a personal project, not a production deployment. The implemented scope focuses on local persistence, Android architecture, unlock mechanics, Firebase integration, and privacy-aware defaults.
 
 Known future improvements include WorkManager-backed background sync, Firebase Storage image backup, conflict handling, richer analytics visualisation, and public discovery moderation.
