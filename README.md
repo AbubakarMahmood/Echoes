@@ -111,4 +111,8 @@ app/src/main/java/com/echoes/app
 
 This is a personal project, not a production deployment. The implemented scope focuses on local persistence, Android architecture, unlock mechanics, Firebase integration, and privacy-aware defaults.
 
+## Repository Boundary
+
+This public repository contains the independently implemented application and its operational documentation. Third-party briefs, grading material, submission evidence, and private service configuration are intentionally excluded. Dependencies and generated Gradle wrapper files remain governed by their own upstream licenses.
+
 Known future improvements include WorkManager-backed background sync, Firebase Storage image backup, conflict handling, richer analytics visualisation, and public discovery moderation.

@@ -29,11 +29,12 @@ google-services.json
 # Firebase config
 app/google-services.json
 
-# Local submission artifacts
+# Local assessment and submission artifacts
 evidence/
 output/
 report/
 screenshots/
 submission-git-log.txt
-cps5012-assessment-2-brief.pdf
+*assessment*brief*.pdf
+brief*/
 firebase setup guide.md

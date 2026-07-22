@@ -19,9 +19,8 @@ import kotlinx.coroutines.launch
 /**
  * Computed analytics snapshot derived from the local capsule archive.
  *
- * All values are calculated in-memory from Room query results. This provides
- * the "analytical features revealing patterns in capsule creation or discovery"
- * required by the 80-100 assessment band without introducing external charting
+ * All values are calculated in-memory from Room query results so the archive can
+ * reveal patterns in capsule creation and discovery without external charting
  * dependencies.
  */
 data class InsightsUiState(
